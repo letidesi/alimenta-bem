@@ -20,6 +20,15 @@ alimenta-bem-ui/dist/
 # dotnet
 **/bin/
 **/obj/
+**/*.user
+**/*.suo
+
+# api local secrets
+alimenta-bem-api/private.key
+alimenta-bem-api/public.key
+alimenta-bem-api/appsettings.json
+alimenta-bem-api/appsettings.Development.json
+!alimenta-bem-api/appsettings.example.json
 
 # vscode/idea
 .vscode/
