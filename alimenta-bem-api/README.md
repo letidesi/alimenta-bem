@@ -29,6 +29,13 @@ O **AlimentaBem** é um sistema que permite:
 - **Organizações** cadastrarem suas necessidades de itens.
 - **Administradores** gerenciarem usuários, cargos (roles), pessoas físicas, organizações e todo o fluxo de doações.
 
+Novidades recentes no domínio de doações e administração:
+
+- Fluxo de doação por status (`Submitted`, `InReview`, `ReadyForDelivery`, `Received`, `TemporarilyUnavailable`).
+- Fila de doações por instituição e histórico de doações por doador.
+- Atualização de status da doação com motivo de indisponibilidade e mensagem amigável ao cidadão.
+- Gestão de instituições também por atualização e exclusão (além do cadastro).
+
 A API é construída sobre **.NET 8** com **FastEndpoints**, seguindo os princípios de **Clean Architecture**, **DDD** e **CQRS** (separação de leitura e escrita via casos de uso).
 
 ---
@@ -46,6 +53,10 @@ Rotas com acesso provisório no momento:
 - `GET /natural-persons/admin`
 - `PUT /natural-person/admin`
 - `DELETE /natural-person/admin/{userId}`
+- `DELETE /organization/{id}`
+- `GET /donations/natural-person/{naturalPersonId}`
+- `GET /donations/organization/{organizationId}`
+- `PUT /donation/status`
 
 ---
 
@@ -118,13 +129,13 @@ alimenta-bem-api/
     │   │   │   └── Update/
     │   │   └── Repository/
     │   ├── Organization/
-    │   │   ├── UseCases/ (Create, ReadList)
+    │   │   ├── UseCases/ (Create, ReadList, Update, Delete)
     │   │   └── Repository/
     │   ├── OrganizationRequirement/
     │   │   ├── UseCases/
     │   │   └── Repository/
     │   ├── Donation/
-    │   │   ├── UseCases/
+    │   │   ├── UseCases/ (Create, ReadListByNaturalPerson, ReadListByOrganization, UpdateStatus)
     │   │   └── Repository/
     │   └── Role/
     │       ├── UseCases/ Repository/ Enum/
@@ -236,6 +247,8 @@ Organizações que recebem doações.
 |---|---|---|---|
 | `POST` | `/organization` | Cadastra organização | Admin |
 | `GET` | `/organizations` | Lista organizações | Autenticado |
+| `PUT` | `/organization` | Atualiza organização | Admin |
+| `DELETE` | `/organization/{id}` | Exclui organização (soft delete) | Público (temporário) |
 
 ### OrganizationRequirement
 Necessidades declaradas pelas organizações (itens que precisam receber).
@@ -253,6 +266,9 @@ Doações de alimentos feitas por cidadãos.
 | Método | Rota | Descrição | Acesso |
 |---|---|---|---|
 | `POST` | `/donation` | Registra doação | Citizen |
+| `GET` | `/donations/natural-person/{naturalPersonId}` | Histórico de doações do doador com status atual | Público (temporário) |
+| `GET` | `/donations/organization/{organizationId}` | Fila de doações por instituição | Público (temporário) |
+| `PUT` | `/donation/status` | Atualiza status da doação pela instituição | Público (temporário) |
 
 ### Role
 Papéis de acesso do sistema. Gerenciado internamente — valores possíveis: `Admin`, `Developer`, `Citizen`.
