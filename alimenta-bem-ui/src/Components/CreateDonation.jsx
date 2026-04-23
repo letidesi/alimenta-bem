@@ -15,6 +15,8 @@ const CreateDonation = () => {
   const [loggedDonorName, setLoggedDonorName] = useState("Carregando...");
   const [organizationRequirements, setOrganizationRequirements] = useState([]);
   const [requirementsLoading, setRequirementsLoading] = useState(false);
+  const [donationsHistory, setDonationsHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_BASE_URL}/organizations`)
@@ -64,6 +66,7 @@ const CreateDonation = () => {
           naturalPersonId: donorId,
         }));
         setLoggedDonorName(donorName);
+        await loadDonationHistory(donorId);
       } catch (error) {
         setErrorMessage("Não foi possível carregar o perfil do doador logado.");
         setLoggedDonorName("Não identificado");
@@ -75,6 +78,41 @@ const CreateDonation = () => {
 
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+
+  const loadDonationHistory = async (naturalPersonId) => {
+    if (!naturalPersonId) return;
+
+    setHistoryLoading(true);
+
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/donations/natural-person/${naturalPersonId}`
+      );
+
+      setDonationsHistory(response.data?.donations || []);
+    } catch {
+      setDonationsHistory([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const statusLabel = (status) => {
+    if (status === "Submitted" || status === "Sent" || status === "Enviada") return "Enviada";
+    if (status === "InReview" || status === "UnderReview" || status === "EmAnalise") return "Em análise";
+    if (status === "ReadyForDelivery" || status === "AwaitingDelivery" || status === "AguardandoEntrega") return "Aguardando entrega";
+    if (status === "Received" || status === "Recebida") return "Recebida";
+    if (status === "TemporarilyUnavailable" || status === "UnavailableAtTheMoment" || status === "IndisponivelNoMomento") return "Indisponível no momento";
+    return status;
+  };
+
+  const statusClassName = (status) => {
+    if (status === "Received" || status === "Recebida") return "donation-status received";
+    if (status === "TemporarilyUnavailable" || status === "UnavailableAtTheMoment" || status === "IndisponivelNoMomento") return "donation-status unavailable";
+    if (status === "ReadyForDelivery" || status === "AwaitingDelivery" || status === "AguardandoEntrega") return "donation-status waiting";
+    if (status === "InReview" || status === "UnderReview" || status === "EmAnalise") return "donation-status analyzing";
+    return "donation-status sent";
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -137,6 +175,7 @@ const CreateDonation = () => {
         donationData
       );
       setSuccessMessage("Doação realizada com sucesso!");
+      await loadDonationHistory(donationData.naturalPersonId);
     } catch (error) {
       setErrorMessage("Ocorreu um erro ao realizar a doação.");
     }
@@ -232,6 +271,37 @@ const CreateDonation = () => {
       )}
 
       {errorMessage && <div className="error-message">{errorMessage}</div>}
+
+      <div className="donation-history-box">
+        <h3>Minhas doações</h3>
+
+        {historyLoading ? (
+          <p className="requirement-message-text">Carregando histórico...</p>
+        ) : donationsHistory.length === 0 ? (
+          <p className="requirement-message-text">Você ainda não possui doações registradas.</p>
+        ) : (
+          <ul className="donation-history-list">
+            {donationsHistory.map((donation) => (
+              <li key={donation.id} className="donation-history-item">
+                <div>
+                  <strong>{donation.itemName}</strong>
+                  <span>
+                    Instituição: {donation.organizationName} | Quantidade: {donation.amountDonated}
+                  </span>
+                </div>
+                <div className="donation-history-status-box">
+                  <span className={statusClassName(donation.status)}>
+                    {statusLabel(donation.status)}
+                  </span>
+                  {donation.unavailableMessage && (
+                    <p className="donation-unavailable-message">{donation.unavailableMessage}</p>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 };
