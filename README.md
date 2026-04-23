@@ -92,4 +92,4 @@ npm run dev
 
 ## Licença
 
-MIT — veja [LICENSE](LICENSE).
+Apache-2.0 — veja [LICENSE](LICENSE).
