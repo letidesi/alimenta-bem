@@ -7,6 +7,7 @@ public class DonationCreateResponse
     public Guid organizationId { get; set; }
     public string itemName { get; set; }
     public int amountDonated { get; set; }
+    public string status { get; set; }
 
     public DateTimeOffset createdAt { get; set; }
     public DateTimeOffset? updatedAt { get; set; }

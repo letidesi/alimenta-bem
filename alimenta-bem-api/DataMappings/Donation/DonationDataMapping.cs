@@ -19,5 +19,13 @@ public class DonationMap : IEntityTypeConfiguration<Donation>
               builder.Property(o => o.itemName)
                      .HasColumnType("varchar(150)");
               builder.Property(o => o.amountDonated);
+              builder.Property(o => o.status)
+                     .HasColumnType("varchar(50)");
+              builder.Property(o => o.unavailableReason)
+                     .HasColumnType("varchar(80)");
+              builder.Property(o => o.unavailableMessage)
+                     .HasColumnType("varchar(300)");
+              builder.Property(o => o.reviewedAt);
+              builder.Property(o => o.receivedAt);
        }
 }

@@ -22,6 +22,7 @@ namespace AlimentaBem.Src.Modules.Donation.UseCases.Create
             organizationId = d.organizationId,
             itemName = d.itemName,
             amountDonated = d.amountDonated,
+            status = d.status,
             createdAt = d.createdAt,
             updatedAt = d.updatedAt
         };
