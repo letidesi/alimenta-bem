@@ -1207,8 +1207,15 @@ export default function AdminHome() {
             <Input />
           </Form.Item>
 
-          <Form.Item label="E-mail" name="email" rules={[{ required: true, message: "Informe o e-mail." }]}>
-            <Input />
+          <Form.Item
+            label="E-mail"
+            name="email"
+            rules={[
+              { required: true, message: "Informe o e-mail." },
+              { type: "email", message: "Informe um e-mail válido." },
+            ]}
+          >
+            <Input type="email" />
           </Form.Item>
 
           <Form.Item label="Nome" name="name" rules={[{ required: true, message: "Informe o nome." }]}>

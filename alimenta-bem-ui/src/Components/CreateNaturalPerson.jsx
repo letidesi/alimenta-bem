@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Switch } from 'antd';
 import '../Css/Style.css';
+import { validateEmailField } from '../Utils/validation';
+import PasswordInput from './PasswordInput';
 
 const CreateNaturalPerson = () => {
     const [personData, setPersonData] = useState({
@@ -19,6 +21,9 @@ const CreateNaturalPerson = () => {
 
     const [successMessage, setSuccessMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
+    const [emailError, setEmailError] = useState('');
+
+    const validateEmail = (value) => validateEmailField(value, setEmailError);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -39,6 +44,9 @@ const CreateNaturalPerson = () => {
         e.preventDefault();
         setSuccessMessage('');
         setErrorMessage('');
+
+        if (!validateEmail(personData.emailUser)) return;
+
         try {
             const token = localStorage.getItem('accessToken');
             const payload = {
@@ -76,17 +84,18 @@ const CreateNaturalPerson = () => {
                 <div className="form-group">
                     <label>E-mail do usuário cadastrado</label>
                     <input
-                        type="text"
+                        type="email"
                         name="emailUser"
                         value={personData.emailUser}
                         onChange={handleChange}
+                        onBlur={(e) => validateEmail(e.target.value)}
                         required
                     />
+                    {emailError && <span className="field-error">{emailError}</span>}
                 </div>
                 <div className="form-group">
                     <label>Senha do usuário</label>
-                    <input
-                        type="password"
+                    <PasswordInput
                         name="password"
                         value={personData.password}
                         onChange={handleChange}

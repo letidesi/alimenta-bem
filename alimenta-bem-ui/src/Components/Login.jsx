@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../Css/Style.css";
+import { validateEmailField } from "../Utils/validation";
+import PasswordInput from "./PasswordInput";
 
 const Login = () => {
   const [loginData, setLoginData] = useState({
@@ -13,6 +15,9 @@ const Login = () => {
 
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [emailError, setEmailError] = useState("");
+
+  const validateEmail = (value) => validateEmailField(value, setEmailError);
 
   const handleChange = (e) => {
     setLoginData({
@@ -26,6 +31,8 @@ const Login = () => {
     e.preventDefault();
     setSuccessMessage("");
     setErrorMessage("");
+
+    if (!validateEmail(loginData.email)) return;
 
     try {
       const response = await axios.post(`${URL}/user/authenticate`, loginData);
@@ -74,15 +81,17 @@ const Login = () => {
             name="email"
             value={loginData.email}
             onChange={handleChange}
+            onBlur={(e) => validateEmail(e.target.value)}
           />
+          {emailError && <span className="field-error">{emailError}</span>}
         </div>
         <div className="form-group">
           <label>Senha</label>
-          <input
-            type="password"
+          <PasswordInput
             name="password"
             value={loginData.password}
             onChange={handleChange}
+            required
           />
         </div>
         <button type="submit" className="submit-btn">

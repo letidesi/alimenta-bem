@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import '../Css/Style.css';
+import { validateEmailField } from '../Utils/validation';
+import PasswordInput from './PasswordInput';
 
 const CreateUser = () => {
     const [userData, setUserData] = useState({
@@ -11,6 +13,9 @@ const CreateUser = () => {
 
     const [successMessage, setSuccessMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
+    const [emailError, setEmailError] = useState('');
+
+    const validateEmail = (value) => validateEmailField(value, setEmailError);
 
     const handleChange = (e) => {
         setUserData({
@@ -24,6 +29,9 @@ const CreateUser = () => {
         e.preventDefault();
         setSuccessMessage('');
         setErrorMessage('');
+
+        if (!validateEmail(userData.email)) return;
+
         try {
             await axios.post(`${URL}/user`, userData);
             setSuccessMessage('Usuário criado com sucesso!');
@@ -42,11 +50,24 @@ const CreateUser = () => {
                 </div>
                 <div className="form-group">
                     <label>Email</label>
-                    <input type="email" name="email" value={userData.email} onChange={handleChange} />
+                    <input
+                        type="email"
+                        name="email"
+                        value={userData.email}
+                        onChange={handleChange}
+                        onBlur={(e) => validateEmail(e.target.value)}
+                        required
+                    />
+                    {emailError && <span className="field-error">{emailError}</span>}
                 </div>
                 <div className="form-group">
                     <label>Senha</label>
-                    <input type="password" name="password" value={userData.password} onChange={handleChange} />
+                    <PasswordInput
+                        name="password"
+                        value={userData.password}
+                        onChange={handleChange}
+                        required
+                    />
                 </div>
                 <button type="submit" className="submit-btn">Enviar</button>
             </form>

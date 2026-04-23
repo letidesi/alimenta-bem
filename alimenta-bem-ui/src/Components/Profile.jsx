@@ -3,6 +3,7 @@ import axios from "axios";
 import { Switch } from "antd";
 import "../Css/Style.css";
 import { jwtDecode } from "jwt-decode";
+import { validateEmailField } from "../Utils/validation";
 
 const UpdateNaturalPerson = () => {
   const [personData, setPersonData] = useState({
@@ -20,6 +21,9 @@ const UpdateNaturalPerson = () => {
   const [userId, setUserId] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [emailError, setEmailError] = useState("");
+
+  const validateEmail = (value) => validateEmailField(value, setEmailError);
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
@@ -93,6 +97,9 @@ const UpdateNaturalPerson = () => {
     e.preventDefault();
     setSuccessMessage("");
     setErrorMessage("");
+
+    if (!validateEmail(personData.email)) return;
+
     try {
       const payload = {
         ...personData,
@@ -115,13 +122,16 @@ const UpdateNaturalPerson = () => {
         <div className="form-group">
           <label>E-mail</label>
           <input
-            type="text"
+            type="email"
             name="email"
             value={personData.email}
             onChange={(e) =>
               setPersonData({ ...personData, email: e.target.value })
             }
+            onBlur={(e) => validateEmail(e.target.value)}
+            required
           />
+          {emailError && <span className="field-error">{emailError}</span>}
         </div>
         <div className="form-group">
           <label>Nome Completo</label>
