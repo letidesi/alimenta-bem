@@ -11,7 +11,9 @@ namespace AlimentaBem.Src.Modules.Organization.UseCases.ReadList
             organizations = list.Select(o => new OrganizationReadListResponse.OrganizationReadListItem()
             {
                 id = o.id,
-                name = o.name
+                name = o.name,
+                type = o.type?.ToString(),
+                description = o.description,
             }).ToList()
         };
     }

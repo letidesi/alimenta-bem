@@ -12,5 +12,12 @@
             "en-US": "Unable to create the organization.",
             "pt-BR": "Não foi possível criar a organização."
         }
+    },
+    {
+        "Key": "NotFound",
+        "LocalizedValues": {
+            "en-US": "Organization not found.",
+            "pt-BR": "Instituição não encontrada."
+        }
     }
 ]
