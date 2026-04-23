@@ -1,0 +1,23 @@
+[
+    {
+        "Key": "QuantityRequired",
+        "LocalizedValues": {
+            "en-US": "The parameter \"quantity\" is required.",
+            "pt-BR": "O parâmetro \"quantity\" é obrigatório."
+        }
+    },
+    {
+        "Key": "ItemNameRequired",
+        "LocalizedValues": {
+            "en-US": "The parameter \"ItemName\" is required.",
+            "pt-BR": "O parâmetro \"ItemName\" é obrigatório."
+        }
+    },
+    {
+        "Key": "IndividualCreationFailed",
+        "LocalizedValues": {
+            "en-US": "Unable to create the organization requirement.",
+            "pt-BR": "Não foi possível criar a necessidade da organização."
+        }
+    }
+]

@@ -1,0 +1,108 @@
+.logged-user-container {
+  display: flex;
+  min-height: 100vh;
+}
+.logged-sidebar {
+  position: relative;
+  background-color: #4b006e;
+  color: white;
+  width: 220px;
+  min-height: 100vh;
+  padding: 20px;
+  transition: transform 0.3s ease;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 1000;
+}
+.logged-sidebar.closed {
+  transform: translateX(-100%);
+}
+.logged-sidebar.closed ~ .main-content {
+  margin-left: 0;
+}
+.logged-sidebar .toggle-button {
+  position: absolute;
+  top: 20px; /* distância do topo */
+  right: 15px; /* distancia da borda direita da sidebar */
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-left: 170px;
+}
+
+.toggle-button-logged {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1100;
+  background: #4b006e;
+  color: white;
+  border: none;
+  font-size: 24px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.toggle-button-logged:hover {
+  background: #5c0080;
+}
+
+.logged-sidebar h2 {
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-left: 50px;
+}
+
+.logged-sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.logged-sidebar li {
+  margin: 15px 0;
+}
+
+.logged-sidebar a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.logged-sidebar a:hover {
+  color: #6f03fc;
+  background-color: rgb(235, 196, 250);
+}
+.logged-sidebar a {
+  display: block; /* garante que o <a> ocupe toda a largura */
+  padding: 10px 15px;
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  border-radius: 4px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.logged-main-content {
+  flex: 1;
+  padding: 40px;
+}
+
+.welcome-text {
+  margin: 20px 0;
+  padding: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-left: 4px solid #6f03fc;
+  border-radius: 4px;
+}

@@ -1,0 +1,44 @@
+[
+    {
+        "Key": "EmailRequired",
+        "LocalizedValues": {
+            "en-US": "The parameter email is required.",
+            "pt-BR": "O parâmetro email é obrigatório."
+        }
+    },
+    {
+        "Key": "NameRequired",
+        "LocalizedValues": {
+            "en-US": "The parameter \"name\" is required.",
+            "pt-BR": "O parâmetro \"name\" é obrigatório."
+        }
+    },
+    {
+        "Key": "FormatOfEmailAddress",
+        "LocalizedValues": {
+            "en-US": "The format of your email address is wrong.",
+            "pt-BR": "O formato do seu endereço de e-mais está errado."
+        }
+    },
+    {
+        "Key": "EmailInvalid",
+        "LocalizedValues": {
+            "en-US": "Invalid email format.",
+            "pt-BR": "Formato de email inválido."
+        }
+    },
+    {
+        "Key": "InvalidTypeParameter",
+        "LocalizedValues": {
+            "en-US": "Parameter \"Type\" is invalid.",
+            "pt-BR": "O parâmetro \"Type\" é inválido."
+        }
+    },
+    {
+        "Key": "TypeRequired",
+        "LocalizedValues": {
+            "en-US": "Parameter \"Type\" is required.",
+            "pt-BR": "O parâmetro \"Type\" é obrigatório."
+        }
+    }
+]

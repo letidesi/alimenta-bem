@@ -1,0 +1,26 @@
+# root
+.DS_Store
+Thumbs.db
+
+# env
+.env
+.env.*
+!.env.example
+
+# node
+**/node_modules/
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+
+# frontend build
+alimenta-bem-ui/build/
+alimenta-bem-ui/dist/
+
+# dotnet
+**/bin/
+**/obj/
+
+# vscode/idea
+.vscode/
+.idea/
