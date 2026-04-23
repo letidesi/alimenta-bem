@@ -24,7 +24,14 @@
 O frontend do **AlimentaBem** é uma Single Page Application (SPA) em **React** que permite:
 
 - **Cidadãos** se registrarem, fazerem login e registrarem doações de alimentos.
-- **Administradores** gerenciarem pessoas físicas, organizações, necessidades, usuários/cargos e visualizarem dados do sistema.
+- **Administradores** gerenciarem pessoas físicas, instituições, necessidades, usuários/cargos, fila de doações por instituição e visualizarem dados do sistema.
+
+Novidades recentes de experiência e operação:
+
+- Histórico de doações do cidadão com status operacional.
+- Fila de doações por instituição no painel admin.
+- Atualização de status da doação com motivo de indisponibilidade e mensagem amigável ao doador.
+- Modal de gestão de instituições no admin para editar e excluir.
 
 A comunicação com o backend é feita via **axios** e toda a autenticação é baseada em **JWT** armazenado no `localStorage`.
 
@@ -43,6 +50,10 @@ Rotas administrativas com acesso público temporário atualmente documentadas na
 - `GET /natural-persons/admin`
 - `PUT /natural-person/admin`
 - `DELETE /natural-person/admin/{userId}`
+- `DELETE /organization/{id}`
+- `GET /donations/natural-person/{naturalPersonId}`
+- `GET /donations/organization/{organizationId}`
+- `PUT /donation/status`
 
 ---
 
@@ -181,6 +192,8 @@ Requerem autenticação com role `Admin`.
 
 - Modal de **Gerenciar usuários e cargos** (listar usuários e alterar role).
 - Modal de **Gerenciar doadores** (listar, editar, excluir e visualizar total de doações por doador).
+- Modal de **Gerenciar instituições** (listar, editar e excluir instituição).
+- Modal de **Gerenciar doações** (fila por instituição com mudança de status: em análise, aguardando entrega, recebida e indisponível no momento).
 
 ---
 
