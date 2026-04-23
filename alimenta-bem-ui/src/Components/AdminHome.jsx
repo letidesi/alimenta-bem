@@ -25,6 +25,7 @@ import "../Css/Style.css";
 export default function AdminHome() {
   const [form] = Form.useForm();
   const [donorForm] = Form.useForm();
+  const [organizationForm] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [organizations, setOrganizations] = useState([]);
   const [donors, setDonors] = useState([]);
@@ -34,14 +35,27 @@ export default function AdminHome() {
   const [editingRequirement, setEditingRequirement] = useState(null);
   const [usersModalOpen, setUsersModalOpen] = useState(false);
   const [donorsModalOpen, setDonorsModalOpen] = useState(false);
+  const [organizationsModalOpen, setOrganizationsModalOpen] = useState(false);
+  const [donationsModalOpen, setDonationsModalOpen] = useState(false);
+  const [unavailableModalOpen, setUnavailableModalOpen] = useState(false);
   const [editDonorModalOpen, setEditDonorModalOpen] = useState(false);
+  const [editOrganizationModalOpen, setEditOrganizationModalOpen] = useState(false);
   const [savingRequirement, setSavingRequirement] = useState(false);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [loadingAdminDonors, setLoadingAdminDonors] = useState(false);
+  const [loadingDonationQueue, setLoadingDonationQueue] = useState(false);
   const [savingDonor, setSavingDonor] = useState(false);
+  const [savingOrganization, setSavingOrganization] = useState(false);
+  const [updatingDonationId, setUpdatingDonationId] = useState(null);
+  const [deletingOrganizationId, setDeletingOrganizationId] = useState(null);
   const [deletingDonorId, setDeletingDonorId] = useState(null);
   const [savingUserRoleId, setSavingUserRoleId] = useState(null);
   const [editingDonor, setEditingDonor] = useState(null);
+  const [editingOrganization, setEditingOrganization] = useState(null);
+  const [donationsQueue, setDonationsQueue] = useState([]);
+  const [selectedDonationOrganizationId, setSelectedDonationOrganizationId] = useState("");
+  const [pendingUnavailableDonationId, setPendingUnavailableDonationId] = useState(null);
+  const [selectedUnavailableReason, setSelectedUnavailableReason] = useState("ReceivingInstability");
   const [institutionSearch, setInstitutionSearch] = useState("");
   const [itemSearch, setItemSearch] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("all");
@@ -53,49 +67,59 @@ export default function AdminHome() {
     { value: "Developer", label: "Developer" },
     { value: "Citizen", label: "Citizen" },
   ];
+  const unavailableReasonOptions = [
+    { value: "ReceivingInstability", label: "Instabilidade temporária de recebimento" },
+    { value: "NeedAlreadyMet", label: "Necessidade já atendida" },
+    { value: "OfferNeedsAdjustment", label: "Oferta precisa de ajuste" },
+  ];
+  const organizationTypeOptions = [
+    { value: "Igreja", label: "Igreja" },
+    { value: "ONG", label: "ONG" },
+    { value: "Escola", label: "Escola" },
+  ];
+
+  const loadDashboard = async () => {
+    setLoading(true);
+
+    try {
+      const [organizationResponse, donorResponse] = await Promise.all([
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/organizations`),
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/natural-persons`),
+      ]);
+
+      const organizationList = organizationResponse.data?.organizations || [];
+      const donorList = donorResponse.data?.naturalPersons || [];
+
+      setOrganizations(organizationList);
+      setDonors(donorList);
+
+      const requirementsResponses = await Promise.all(
+        organizationList.map(async (organization) => {
+          try {
+            const response = await axios.get(
+              `${import.meta.env.VITE_API_BASE_URL}/organization-requirements/${organization.id}`
+            );
+
+            return {
+              ...organization,
+              requirements: response.data?.requirements || [],
+            };
+          } catch {
+            return {
+              ...organization,
+              requirements: [],
+            };
+          }
+        })
+      );
+
+      setRequirementsByOrganization(requirementsResponses);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadDashboard = async () => {
-      setLoading(true);
-
-      try {
-        const [organizationResponse, donorResponse] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_API_BASE_URL}/organizations`),
-          axios.get(`${import.meta.env.VITE_API_BASE_URL}/natural-persons`),
-        ]);
-
-        const organizationList = organizationResponse.data?.organizations || [];
-        const donorList = donorResponse.data?.naturalPersons || [];
-
-        setOrganizations(organizationList);
-        setDonors(donorList);
-
-        const requirementsResponses = await Promise.all(
-          organizationList.map(async (organization) => {
-            try {
-              const response = await axios.get(
-                `${import.meta.env.VITE_API_BASE_URL}/organization-requirements/${organization.id}`
-              );
-
-              return {
-                ...organization,
-                requirements: response.data?.requirements || [],
-              };
-            } catch {
-              return {
-                ...organization,
-                requirements: [],
-              };
-            }
-          })
-        );
-
-        setRequirementsByOrganization(requirementsResponses);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadDashboard();
   }, []);
 
@@ -435,6 +459,196 @@ export default function AdminHome() {
     }
   };
 
+  const openOrganizationsModal = () => {
+    setOrganizationsModalOpen(true);
+  };
+
+  const closeOrganizationsModal = () => {
+    setOrganizationsModalOpen(false);
+  };
+
+  const openEditOrganizationModal = (organization) => {
+    setEditingOrganization(organization);
+    organizationForm.setFieldsValue({
+      id: organization.id,
+      name: organization.name,
+      type: organization.type,
+      description: organization.description,
+    });
+    setEditOrganizationModalOpen(true);
+  };
+
+  const closeEditOrganizationModal = () => {
+    setEditOrganizationModalOpen(false);
+    setEditingOrganization(null);
+    organizationForm.resetFields();
+  };
+
+  const handleUpdateOrganization = async () => {
+    if (!editingOrganization) return;
+
+    try {
+      const values = await organizationForm.validateFields();
+      setSavingOrganization(true);
+
+      await axios.put(
+        `${import.meta.env.VITE_API_BASE_URL}/organization`,
+        {
+          id: values.id,
+          name: values.name,
+          type: values.type,
+          description: values.description,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      message.success("Instituição atualizada com sucesso.");
+      closeEditOrganizationModal();
+      await loadDashboard();
+    } catch (error) {
+      if (!error?.errorFields) {
+        message.error("Não foi possível atualizar a instituição.");
+      }
+    } finally {
+      setSavingOrganization(false);
+    }
+  };
+
+  const handleDeleteOrganization = async (organizationId) => {
+    setDeletingOrganizationId(organizationId);
+
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/organization/${organizationId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      message.success("Instituição excluída com sucesso.");
+      await loadDashboard();
+    } catch {
+      message.error("Não foi possível excluir a instituição.");
+    } finally {
+      setDeletingOrganizationId(null);
+    }
+  };
+
+  const loadDonationQueue = async (organizationId) => {
+    if (!organizationId) {
+      setDonationsQueue([]);
+      return;
+    }
+
+    setLoadingDonationQueue(true);
+
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_BASE_URL}/donations/organization/${organizationId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setDonationsQueue(response.data?.donations || []);
+    } catch {
+      setDonationsQueue([]);
+      message.error("Não foi possível carregar a fila de doações.");
+    } finally {
+      setLoadingDonationQueue(false);
+    }
+  };
+
+  const openDonationsModal = async () => {
+    const firstOrganizationId = organizations[0]?.id || "";
+    setSelectedDonationOrganizationId(firstOrganizationId);
+    setDonationsModalOpen(true);
+    await loadDonationQueue(firstOrganizationId);
+  };
+
+  const closeDonationsModal = () => {
+    setDonationsModalOpen(false);
+    setDonationsQueue([]);
+    setPendingUnavailableDonationId(null);
+    setUnavailableModalOpen(false);
+  };
+
+  const updateDonationStatus = async (donationId, status, unavailableReason = null) => {
+    if (!selectedDonationOrganizationId) {
+      message.warning("Selecione uma instituição para gerenciar a fila de doações.");
+      return;
+    }
+
+    setUpdatingDonationId(donationId);
+
+    try {
+      await axios.put(
+        `${import.meta.env.VITE_API_BASE_URL}/donation/status`,
+        {
+          donationId,
+          organizationId: selectedDonationOrganizationId,
+          status,
+          unavailableReason,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      message.success("Status da doação atualizado com sucesso.");
+      await loadDonationQueue(selectedDonationOrganizationId);
+    } catch {
+      message.error("Não foi possível atualizar o status da doação.");
+    } finally {
+      setUpdatingDonationId(null);
+    }
+  };
+
+  const openUnavailableReasonModal = (donationId) => {
+    setPendingUnavailableDonationId(donationId);
+    setSelectedUnavailableReason("ReceivingInstability");
+    setUnavailableModalOpen(true);
+  };
+
+  const handleConfirmUnavailable = async () => {
+    if (!pendingUnavailableDonationId) return;
+
+    await updateDonationStatus(
+      pendingUnavailableDonationId,
+      "TemporarilyUnavailable",
+      selectedUnavailableReason
+    );
+
+    setUnavailableModalOpen(false);
+    setPendingUnavailableDonationId(null);
+  };
+
+  const donationStatusLabel = (status) => {
+    if (status === "Submitted" || status === "Sent" || status === "Enviada") return "Enviada";
+    if (status === "InReview" || status === "UnderReview" || status === "EmAnalise") return "Em análise";
+    if (status === "ReadyForDelivery" || status === "AwaitingDelivery" || status === "AguardandoEntrega") return "Aguardando entrega";
+    if (status === "Received" || status === "Recebida") return "Recebida";
+    if (status === "TemporarilyUnavailable" || status === "UnavailableAtTheMoment" || status === "IndisponivelNoMomento") return "Indisponível no momento";
+    return status;
+  };
+
+  const donationStatusColor = (status) => {
+    if (status === "Received" || status === "Recebida") return "green";
+    if (status === "ReadyForDelivery" || status === "AwaitingDelivery" || status === "AguardandoEntrega") return "blue";
+    if (status === "InReview" || status === "UnderReview" || status === "EmAnalise") return "gold";
+    if (status === "TemporarilyUnavailable" || status === "UnavailableAtTheMoment" || status === "IndisponivelNoMomento") return "volcano";
+    return "default";
+  };
+
   return (
     <section className="admin-dashboard">
       <div className="home-hero">
@@ -478,6 +692,8 @@ export default function AdminHome() {
               <div className="admin-overview-actions">
                 <Button onClick={openDonorsModal}>Gerenciar doadores</Button>
                 <Button onClick={openUsersModal}>Gerenciar usuários</Button>
+                <Button onClick={openOrganizationsModal}>Gerenciar instituições</Button>
+                <Button onClick={openDonationsModal}>Gerenciar doações</Button>
                 <Link to="/admin/create-organization">
                   <Button>Cadastrar instituição</Button>
                 </Link>
@@ -665,6 +881,216 @@ export default function AdminHome() {
             />
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title="Gerenciar instituições"
+        open={organizationsModalOpen}
+        onCancel={closeOrganizationsModal}
+        footer={[
+          <Button key="close-organizations-modal" onClick={closeOrganizationsModal}>
+            Fechar
+          </Button>,
+        ]}
+        width={980}
+      >
+        {organizations.length === 0 ? (
+          <Empty description="Nenhuma instituição encontrada." />
+        ) : (
+          <div className="admin-donor-list">
+            {organizations.map((organization) => (
+              <Card key={organization.id} size="small" className="admin-donor-card">
+                <div className="admin-donor-row">
+                  <div>
+                    <strong>{organization.name}</strong>
+                    <p>Tipo: {organization.type || "Não informado"}</p>
+                    <p>{organization.description || "Sem descrição."}</p>
+                  </div>
+
+                  <Space>
+                    <Button onClick={() => openEditOrganizationModal(organization)}>Editar</Button>
+                    <Popconfirm
+                      title="Excluir instituição"
+                      description="Tem certeza que deseja excluir esta instituição?"
+                      okText="Excluir"
+                      cancelText="Cancelar"
+                      onConfirm={() => handleDeleteOrganization(organization.id)}
+                    >
+                      <Button danger loading={deletingOrganizationId === organization.id}>
+                        Excluir
+                      </Button>
+                    </Popconfirm>
+                  </Space>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+        title="Editar instituição"
+        open={editOrganizationModalOpen}
+        onCancel={closeEditOrganizationModal}
+        onOk={handleUpdateOrganization}
+        confirmLoading={savingOrganization}
+        okText="Salvar"
+        cancelText="Cancelar"
+      >
+        <Form form={organizationForm} layout="vertical">
+          <Form.Item name="id" hidden>
+            <Input />
+          </Form.Item>
+
+          <Form.Item label="Nome" name="name" rules={[{ required: true, message: "Informe o nome." }]}>
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            label="Tipo"
+            name="type"
+            rules={[{ required: true, message: "Selecione o tipo da instituição." }]}
+          >
+            <Select options={organizationTypeOptions} />
+          </Form.Item>
+
+          <Form.Item label="Descrição" name="description">
+            <Input.TextArea rows={3} />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="Fila de doações por instituição"
+        open={donationsModalOpen}
+        onCancel={closeDonationsModal}
+        footer={[
+          <Button key="close-donations-modal" onClick={closeDonationsModal}>
+            Fechar
+          </Button>,
+        ]}
+        width={1100}
+      >
+        <div className="admin-donation-queue-header">
+          <Select
+            placeholder="Selecione a instituição"
+            value={selectedDonationOrganizationId || undefined}
+            style={{ width: "100%" }}
+            options={organizations.map((organization) => ({
+              value: organization.id,
+              label: organization.name,
+            }))}
+            onChange={async (value) => {
+              setSelectedDonationOrganizationId(value);
+              await loadDonationQueue(value);
+            }}
+          />
+        </div>
+
+        {loadingDonationQueue ? (
+          <div className="admin-dashboard-loading">
+            <Spin size="large" />
+          </div>
+        ) : donationsQueue.length === 0 ? (
+          <Empty description="Nenhuma doação encontrada para esta instituição." />
+        ) : (
+          <div className="admin-donation-queue-list">
+            {donationsQueue.map((donation) => (
+              <Card key={donation.id} size="small" className="admin-donation-queue-card">
+                <div className="admin-donation-queue-row">
+                  <div>
+                    <strong>{donation.itemName}</strong>
+                    <p>Doador: {donation.donorName}</p>
+                    <p>Quantidade: {donation.amountDonated}</p>
+                    <Tag color={donationStatusColor(donation.status)}>
+                      {donationStatusLabel(donation.status)}
+                    </Tag>
+                    {donation.unavailableMessage && (
+                      <p className="donation-unavailable-message">{donation.unavailableMessage}</p>
+                    )}
+                  </div>
+
+                  <Space wrap>
+                    <Button
+                      onClick={() => updateDonationStatus(donation.id, "InReview")}
+                      loading={updatingDonationId === donation.id}
+                      disabled={
+                        donation.status === "Received" ||
+                        donation.status === "Recebida" ||
+                        donation.status === "TemporarilyUnavailable" ||
+                        donation.status === "UnavailableAtTheMoment" ||
+                        donation.status === "IndisponivelNoMomento"
+                      }
+                    >
+                      Em análise
+                    </Button>
+                    <Button
+                      onClick={() => updateDonationStatus(donation.id, "ReadyForDelivery")}
+                      loading={updatingDonationId === donation.id}
+                      disabled={
+                        donation.status === "Received" ||
+                        donation.status === "Recebida" ||
+                        donation.status === "TemporarilyUnavailable" ||
+                        donation.status === "UnavailableAtTheMoment" ||
+                        donation.status === "IndisponivelNoMomento"
+                      }
+                    >
+                      Aguardando entrega
+                    </Button>
+                    <Button
+                      type="primary"
+                      onClick={() => updateDonationStatus(donation.id, "Received")}
+                      loading={updatingDonationId === donation.id}
+                      disabled={
+                        donation.status === "Received" ||
+                        donation.status === "Recebida" ||
+                        donation.status === "TemporarilyUnavailable" ||
+                        donation.status === "UnavailableAtTheMoment" ||
+                        donation.status === "IndisponivelNoMomento"
+                      }
+                    >
+                      Marcar recebida
+                    </Button>
+                    <Button
+                      danger
+                      onClick={() => openUnavailableReasonModal(donation.id)}
+                      loading={updatingDonationId === donation.id}
+                      disabled={
+                        donation.status === "Received" ||
+                        donation.status === "Recebida" ||
+                        donation.status === "TemporarilyUnavailable" ||
+                        donation.status === "UnavailableAtTheMoment" ||
+                        donation.status === "IndisponivelNoMomento"
+                      }
+                    >
+                      Indisponível no momento
+                    </Button>
+                  </Space>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+        title="Motivo do redirecionamento da doação"
+        open={unavailableModalOpen}
+        onCancel={() => {
+          setUnavailableModalOpen(false);
+          setPendingUnavailableDonationId(null);
+        }}
+        onOk={handleConfirmUnavailable}
+        okText="Confirmar"
+        cancelText="Cancelar"
+      >
+        <p>Selecione um motivo para o cidadão receber uma justificativa clara.</p>
+        <Select
+          style={{ width: "100%" }}
+          value={selectedUnavailableReason}
+          options={unavailableReasonOptions}
+          onChange={setSelectedUnavailableReason}
+        />
       </Modal>
 
       <Modal
