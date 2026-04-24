@@ -7,7 +7,6 @@
 ## Sumário
 
 - [Visão Geral](#visão-geral)
-- [Status de Segurança Temporário](#status-de-segurança-temporário)
 - [Tecnologias](#tecnologias)
 - [Estrutura do Projeto](#estrutura-do-projeto)
 - [Pré-requisitos](#pré-requisitos)
@@ -28,35 +27,17 @@ O **AlimentaBem** é um sistema que permite:
 - **Cidadãos** criarem cadastros e registrarem doações de alimentos.
 - **Organizações** cadastrarem suas necessidades de itens.
 - **Administradores** gerenciarem usuários, cargos (roles), pessoas físicas, organizações e todo o fluxo de doações.
+- **Desenvolvedores** gerenciarem cargos de usuários via painel dedicado.
 
-Novidades recentes no domínio de doações e administração:
+Funcionalidades do domínio de doações e administração:
 
 - Fluxo de doação por status (`Submitted`, `InReview`, `ReadyForDelivery`, `Received`, `TemporarilyUnavailable`).
 - Fila de doações por instituição e histórico de doações por doador.
 - Atualização de status da doação com motivo de indisponibilidade e mensagem amigável ao cidadão.
 - Gestão de instituições também por atualização e exclusão (além do cadastro).
+- Controle de acesso por cargo em todos os endpoints protegidos.
 
 A API é construída sobre **.NET 8** com **FastEndpoints**, seguindo os princípios de **Clean Architecture**, **DDD** e **CQRS** (separação de leitura e escrita via casos de uso).
-
----
-
-## Status de Segurança Temporário
-
-> **Atenção:** algumas rotas administrativas estão **temporariamente públicas** para destravar funcionalidades durante o desenvolvimento.
->
-> Este estado é provisório e **não é recomendado para produção**.
-
-Rotas com acesso provisório no momento:
-
-- `GET /users`
-- `PUT /user/role`
-- `GET /natural-persons/admin`
-- `PUT /natural-person/admin`
-- `DELETE /natural-person/admin/{userId}`
-- `DELETE /organization/{id}`
-- `GET /donations/natural-person/{naturalPersonId}`
-- `GET /donations/organization/{organizationId}`
-- `PUT /donation/status`
 
 ---
 
@@ -224,8 +205,8 @@ http://localhost:5178/swagger
 | `POST` | `/user` | Cria novo usuário | Público |
 | `POST` | `/user/authenticate` | Autentica e retorna JWT | Público |
 | `GET` | `/user/{userId}` | Busca usuário por ID | Público |
-| `GET` | `/users` | Lista usuários com role atual | Público (temporário) |
-| `PUT` | `/user/role` | Atualiza role de usuário existente | Público (temporário) |
+| `GET` | `/users` | Lista usuários com role atual | Admin, Developer |
+| `PUT` | `/user/role` | Atualiza role de usuário existente | Admin, Developer |
 
 ### NaturalPerson
 Perfil da pessoa física vinculada a um usuário.
@@ -233,12 +214,12 @@ Perfil da pessoa física vinculada a um usuário.
 | Método | Rota | Descrição | Acesso |
 |---|---|---|---|
 | `GET` | `/natural-persons` | Lista simplificada de pessoas físicas | Público |
-| `GET` | `/natural-person/{userId}` | Busca perfil por ID de usuário | Público |
-| `PUT` | `/natural-person` | Cria/atualiza perfil de pessoa física | Público |
+| `GET` | `/natural-person/{userId}` | Busca perfil por ID de usuário | Autenticado |
+| `PUT` | `/natural-person` | Cria/atualiza perfil de pessoa física | Autenticado |
 | `POST` | `/natural-person/admin` | Cria ou atualiza doador (com credenciais de usuário) | Admin |
-| `GET` | `/natural-persons/admin` | Lista completa de doadores com total de doações | Público (temporário) |
-| `PUT` | `/natural-person/admin` | Atualiza dados de doador por admin | Público (temporário) |
-| `DELETE` | `/natural-person/admin/{userId}` | Exclui doador por userId (soft delete) | Público (temporário) |
+| `GET` | `/natural-persons/admin` | Lista completa de doadores com total de doações | Admin |
+| `PUT` | `/natural-person/admin` | Atualiza dados de doador por admin | Admin |
+| `DELETE` | `/natural-person/admin/{userId}` | Exclui doador por userId (soft delete) | Admin |
 
 ### Organization
 Organizações que recebem doações.
@@ -248,7 +229,7 @@ Organizações que recebem doações.
 | `POST` | `/organization` | Cadastra organização | Admin |
 | `GET` | `/organizations` | Lista organizações | Autenticado |
 | `PUT` | `/organization` | Atualiza organização | Admin |
-| `DELETE` | `/organization/{id}` | Exclui organização (soft delete) | Público (temporário) |
+| `DELETE` | `/organization/{id}` | Exclui organização (soft delete) | Admin |
 
 ### OrganizationRequirement
 Necessidades declaradas pelas organizações (itens que precisam receber).
@@ -266,9 +247,9 @@ Doações de alimentos feitas por cidadãos.
 | Método | Rota | Descrição | Acesso |
 |---|---|---|---|
 | `POST` | `/donation` | Registra doação | Citizen |
-| `GET` | `/donations/natural-person/{naturalPersonId}` | Histórico de doações do doador com status atual | Público (temporário) |
-| `GET` | `/donations/organization/{organizationId}` | Fila de doações por instituição | Público (temporário) |
-| `PUT` | `/donation/status` | Atualiza status da doação pela instituição | Público (temporário) |
+| `GET` | `/donations/natural-person/{naturalPersonId}` | Histórico de doações do doador com status atual | Citizen |
+| `GET` | `/donations/organization/{organizationId}` | Fila de doações por instituição | Admin |
+| `PUT` | `/donation/status` | Atualiza status da doação pela instituição | Admin |
 
 ### Role
 Papéis de acesso do sistema. Gerenciado internamente — valores possíveis: `Admin`, `Developer`, `Citizen`.
@@ -293,8 +274,8 @@ A API usa **JWT com RSA-256** (assinatura assimétrica):
    ```
 
 **Roles disponíveis:**
-- `Admin` — acesso total ao sistema
-- `Developer` — perfil técnico com permissões específicas de ambiente
+- `Admin` — acesso total ao sistema (gerencia usuários, doadores, organizações, doações)
+- `Developer` — perfil técnico com acesso ao painel de cargos (`GET /users`, `PUT /user/role`)
 - `Citizen` — acesso às rotas de doação e perfil próprio
 
 ---

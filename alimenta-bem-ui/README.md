@@ -1,4 +1,4 @@
-# AlimentaBem — UI
+﻿# AlimentaBem — UI
 
 > Interface web do sistema **AlimentaBem**, uma plataforma de gestão de doações de alimentos que conecta cidadãos, organizações e administradores.
 
@@ -7,7 +7,6 @@
 ## Sumário
 
 - [Visão Geral](#visão-geral)
-- [Status de Segurança Temporário](#status-de-segurança-temporário)
 - [Tecnologias](#tecnologias)
 - [Estrutura do Projeto](#estrutura-do-projeto)
 - [Pré-requisitos](#pré-requisitos)
@@ -25,35 +24,18 @@ O frontend do **AlimentaBem** é uma Single Page Application (SPA) em **React** 
 
 - **Cidadãos** se registrarem, fazerem login e registrarem doações de alimentos.
 - **Administradores** gerenciarem pessoas físicas, instituições, necessidades, usuários/cargos, fila de doações por instituição e visualizarem dados do sistema.
+- **Desenvolvedores** gerenciarem cargos de usuários via painel dedicado.
 
-Novidades recentes de experiência e operação:
+Funcionalidades da plataforma:
 
-- Histórico de doações do cidadão com status operacional.
-- Fila de doações por instituição no painel admin.
+- Histórico de doações do cidadão com filtros por status e instituição.
+- Fila de doações por instituição no painel admin com notificação de pendentes.
 - Atualização de status da doação com motivo de indisponibilidade e mensagem amigável ao doador.
 - Modal de gestão de instituições no admin para editar e excluir.
+- Redirecionamento guiado após ações em formulários com contagem regressiva.
+- Mensagens de erro diretas da API em todos os formulários.
 
 A comunicação com o backend é feita via **axios** e toda a autenticação é baseada em **JWT** armazenado no `localStorage`.
-
----
-
-## Status de Segurança Temporário
-
-> **Atenção:** parte das rotas administrativas da API está temporariamente configurada como pública.
->
-> A UI já possui guardas de rota por perfil, mas esse cenário no backend é provisório e deve ser corrigido antes de produção.
-
-Rotas administrativas com acesso público temporário atualmente documentadas na API:
-
-- `GET /users`
-- `PUT /user/role`
-- `GET /natural-persons/admin`
-- `PUT /natural-person/admin`
-- `DELETE /natural-person/admin/{userId}`
-- `DELETE /organization/{id}`
-- `GET /donations/natural-person/{naturalPersonId}`
-- `GET /donations/organization/{organizationId}`
-- `PUT /donation/status`
 
 ---
 
@@ -91,14 +73,15 @@ alimenta-bem-ui/
     ├── index.css
     │
     ├── Components/         # Páginas e componentes de funcionalidade
-    │   ├── Login.jsx                          # Tela de login
-    │   ├── CreateUser.jsx                     # Cadastro de novo usuário
+    │   ├── Login.jsx                          # Tela de login (prefill de email apos cadastro)
+    │   ├── CreateUser.jsx                     # Cadastro de novo usuario (redirecionamento com contagem)
     │   ├── CreateNaturalPerson.jsx            # Cadastro de pessoa física
     │   ├── CreateOrganization.jsx             # Cadastro de organização
-    │   ├── CreateOrganizationRequirement.jsx  # Cadastro de necessidade
+    │   ├── CreateOrganizationRequirement.jsx  # Cadastro de necessidade (org pre-selecionada por estado)
     │   ├── CreateDonation.jsx                 # Formulário de doação
-    │   ├── UserHome.jsx                       # Página inicial do cidadão
-    │   ├── AdminHome.jsx                      # Painel de gestão do administrador
+    │   ├── UserHome.jsx                       # Pagina inicial do cidadao (historico de doacoes + filtros)
+    │   ├── AdminHome.jsx                      # Painel do administrador (badge de pendentes + polling)
+    │   ├── DeveloperHome.jsx                  # Painel do desenvolvedor (gestao de cargos)
     │   ├── Profile.jsx                        # Perfil do usuário
     │   └── LoggedUser.jsx
     │
@@ -107,10 +90,16 @@ alimenta-bem-ui/
     │   ├── DashboardLayout.jsx           # Layout Ant Design: sidebar responsiva com Drawer mobile
     │   ├── LoggedUserLayout.jsx          # Rotas do cidadão autenticado (usa DashboardLayout)
     │   ├── AdminUserLayout.jsx           # Rotas do administrador (usa DashboardLayout)
+    │   ├── DeveloperUserLayout.jsx       # Rotas do desenvolvedor (usa DashboardLayout)
     │   └── ProtectedLayoutRouter.jsx     # Guard de rota com verificação de role
     │
+    ├── Utils/              # Utilitários compartilhados
+    │   ├── apiError.js       # Extrai mensagem de erro da resposta da API
+    │   ├── donationStatus.js # Helpers de status de doação (labels, cores, pendente)
+    │   └── constants.js      # Constantes compartilhadas (roles, opções de formulário)
+    │
     └── Css/                # Estilos globais
-        └── Style.css       # Variáveis CSS, utilititários e classes de layout
+        └── Style.css       # Variáveis CSS, utilitários e classes de layout
 ```
 
 ---
@@ -177,12 +166,19 @@ Requerem autenticação com role `Citizen`.
 | `/logged-user/create-donation` | `CreateDonation` | Registrar nova doação (doador auto-preenchido via JWT; necessidades da instituição exibidas como sugestões) |
 | `/logged-user/profile` | `Profile` | Perfil do usuário (campo PCD como toggle Switch) |
 
+### Rotas do Desenvolvedor (`/developer`)
+Requerem autenticação com role `Developer` ou `Admin`.
+
+| Rota | Componente | Descrição |
+|---|---|---|
+| `/developer` | `DeveloperHome` | Painel de gestão de cargos de usuários |
+
 ### Rotas do Administrador (`/admin`)
 Requerem autenticação com role `Admin`.
 
 | Rota | Componente | Descrição |
 |---|---|---|
-| `/admin` | `AdminHome` | Painel de gestão: estatísticas, necessidades por instituição, editar/excluir inline, filtros e paginação |
+| `/admin` | `AdminHome` | Painel de gestão: estatísticas, necessidades por instituição, editar/excluir inline, filtros, badge de doações pendentes |
 | `/admin/profile` | `Profile` | Perfil do administrador |
 | `/admin/create-person` | `CreateNaturalPerson` | Cadastrar/atualizar doador com credenciais |
 | `/admin/create-organization` | `CreateOrganization` | Cadastrar organização |
@@ -190,10 +186,11 @@ Requerem autenticação com role `Admin`.
 
 ### Funcionalidades no Painel Admin
 
-- Modal de **Gerenciar usuários e cargos** (listar usuários e alterar role).
+- Modal de **Gerenciar usuários e cargos** (listar usuários e alterar role com tag do cargo atual).
 - Modal de **Gerenciar doadores** (listar, editar, excluir e visualizar total de doações por doador).
 - Modal de **Gerenciar instituições** (listar, editar e excluir instituição).
 - Modal de **Gerenciar doações** (fila por instituição com mudança de status: em análise, aguardando entrega, recebida e indisponível no momento).
+- **Notificação de doações pendentes**: badge no botão de doações com polling a cada 20s e alerta ao receber novas.
 
 ---
 
