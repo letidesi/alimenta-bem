@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Button, Card, Empty, Modal, Select, Space, Spin, message } from "antd";
+import { Button, Card, Empty, Modal, Select, Space, Spin, Tag, message } from "antd";
 import { getAuthHeaders, getJsonAuthHeaders } from "../../Utils/auth";
 import { ROLE_OPTIONS } from "../../Utils/constants";
 
 export default function UsersModal({ open, onClose }) {
   const [usersList, setUsersList] = useState([]);
+  const [pendingRoles, setPendingRoles] = useState({});
   const [loading, setLoading] = useState(false);
   const [savingUserId, setSavingUserId] = useState(null);
 
@@ -20,6 +21,7 @@ export default function UsersModal({ open, onClose }) {
         headers: getAuthHeaders(),
       });
       setUsersList(response.data?.users || []);
+      setPendingRoles({});
     } catch {
       setUsersList([]);
       message.error("Não foi possível carregar os usuários.");
@@ -29,30 +31,32 @@ export default function UsersModal({ open, onClose }) {
   };
 
   const onRoleChange = (userId, role) => {
-    setUsersList((prev) =>
-      prev.map((user) => (user.userId === userId ? { ...user, role } : user))
-    );
+    setPendingRoles((prev) => ({ ...prev, [userId]: role }));
   };
 
   const handleSaveRole = async (user) => {
+    const roleToSave = pendingRoles[user.userId] ?? user.role;
     setSavingUserId(user.userId);
     try {
-      const response = await axios.put(
+      await axios.put(
         `${import.meta.env.VITE_API_BASE_URL}/user/role`,
-        { userId: user.userId, role: user.role },
+        { userId: user.userId, role: roleToSave },
         { headers: getJsonAuthHeaders() }
       );
-      setUsersList((prev) =>
-        prev.map((item) =>
-          item.userId === response.data.userId ? { ...item, role: response.data.role } : item
-        )
-      );
       message.success("Cargo atualizado com sucesso.");
+      await loadUsers();
     } catch {
       message.error("Não foi possível atualizar o cargo.");
     } finally {
       setSavingUserId(null);
     }
+  };
+
+  const roleColor = (role) => {
+    if (role === "Admin") return "red";
+    if (role === "Developer") return "purple";
+    if (role === "Citizen") return "blue";
+    return "default";
   };
 
   return (
@@ -77,10 +81,12 @@ export default function UsersModal({ open, onClose }) {
                 <div>
                   <strong>{user.name}</strong>
                   <p>{user.email}</p>
+                  <Tag color={roleColor(user.role)}>{user.role || "Sem cargo"}</Tag>
                 </div>
                 <Space>
                   <Select
-                    value={user.role || "Citizen"}
+                    value={pendingRoles[user.userId] ?? user.role ?? undefined}
+                    placeholder="Sem cargo"
                     options={ROLE_OPTIONS}
                     onChange={(role) => onRoleChange(user.userId, role)}
                     style={{ minWidth: 150 }}
