@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate} from "react-router-do
 import PublicLayout from "./Layouts/PublicLayout";
 import LoggedUserLayout from "./Layouts/LoggedUserLayout";
 import AdminUserLayout from "./Layouts/AdminUserLayout";
+import DeveloperUserLayout from "./Layouts/DeveloperUserLayout";
 
 import Login from "./Components/Login";
 import CreateUser from "./Components/CreateUser";
@@ -13,6 +14,7 @@ import CreateOrganizationRequirement from "./Components/CreateOrganizationRequir
 import CreateDonation from "./Components/CreateDonation";
 import UserHome from "./Components/UserHome";
 import AdminHome from "./Components/AdminHome";
+import DeveloperHome from "./Components/DeveloperHome";
 import Profile from "./Components/Profile";
 
 function parseJwt(token) {
@@ -48,6 +50,7 @@ function normalizeRoles(decodedToken) {
 
 function getDefaultRouteByRoles(roles) {
   if (roles.includes("admin")) return "/admin";
+  if (roles.includes("developer")) return "/developer";
   if (roles.includes("citizen")) return "/logged-user";
   return "/login";
 }
@@ -121,6 +124,17 @@ function App() {
           <Route path="create-donation" element={<CreateDonation />} />
           <Route index element={<UserHome />} />
           <Route path="profile" element={<Profile />} />
+        </Route>
+
+        <Route
+          path="/developer"
+          element={
+            <RequireAccess allowRoles={["Developer"]}>
+              <DeveloperUserLayout />
+            </RequireAccess>
+          }
+        >
+          <Route index element={<DeveloperHome />} />
         </Route>
 
         <Route
