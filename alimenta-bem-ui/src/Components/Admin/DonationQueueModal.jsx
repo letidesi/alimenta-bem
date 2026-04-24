@@ -9,7 +9,7 @@ import {
   isDonationFinalized,
 } from "../../Utils/donationStatus";
 
-export default function DonationQueueModal({ open, onClose, organizations }) {
+export default function DonationQueueModal({ open, onClose, organizations, onQueueChanged }) {
   const [queue, setQueue] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedOrgId, setSelectedOrgId] = useState("");
@@ -62,6 +62,9 @@ export default function DonationQueueModal({ open, onClose, organizations }) {
       );
       message.success("Status da doação atualizado com sucesso.");
       await loadQueue(selectedOrgId);
+      if (onQueueChanged) {
+        await onQueueChanged();
+      }
     } catch {
       message.error("Não foi possível atualizar o status da doação.");
     } finally {

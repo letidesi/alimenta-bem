@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useRef, useMemo, useState } from "react";
 import axios from "axios";
 import {
+  Badge,
   Button,
   Card,
   Col,
@@ -18,6 +19,7 @@ import {
 import { Link } from "react-router-dom";
 import "../Css/Style.css";
 import { getAuthHeaders } from "../Utils/auth";
+import { isDonationPendingReview } from "../Utils/donationStatus";
 import EditRequirementModal from "./Admin/EditRequirementModal";
 import UsersModal from "./Admin/UsersModal";
 import DonorsModal from "./Admin/DonorsModal";
@@ -41,13 +43,60 @@ export default function AdminHome() {
   const [itemSearch, setItemSearch] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [pendingDonationCount, setPendingDonationCount] = useState(0);
+
+  const hasInitializedPendingRef = useRef(false);
+  const previousPendingCountRef = useRef(0);
+
+  const loadPendingDonationsCount = useCallback(async (organizationList, notifyOnIncrease = true) => {
+    if (!organizationList?.length) {
+      setPendingDonationCount(0);
+      previousPendingCountRef.current = 0;
+      hasInitializedPendingRef.current = true;
+      return;
+    }
+
+    const donationLists = await Promise.all(
+      organizationList.map(async (organization) => {
+        try {
+          const response = await axios.get(
+            `${import.meta.env.VITE_API_BASE_URL}/donations/organization/${organization.id}`,
+            { headers: getAuthHeaders() }
+          );
+
+          return response.data?.donations || [];
+        } catch {
+          return [];
+        }
+      })
+    );
+
+    const nextCount = donationLists.reduce(
+      (sum, donations) => sum + donations.filter((donation) => isDonationPendingReview(donation.status)).length,
+      0
+    );
+
+    setPendingDonationCount(nextCount);
+
+    if (
+      notifyOnIncrease &&
+      hasInitializedPendingRef.current &&
+      nextCount > previousPendingCountRef.current
+    ) {
+      const difference = nextCount - previousPendingCountRef.current;
+      message.info(`Nova doação recebida: ${difference} item(ns) aguardando análise.`);
+    }
+
+    previousPendingCountRef.current = nextCount;
+    hasInitializedPendingRef.current = true;
+  }, []);
 
   const loadDashboard = async () => {
     setLoading(true);
     try {
       const [organizationResponse, donorResponse] = await Promise.all([
         axios.get(`${import.meta.env.VITE_API_BASE_URL}/organizations`),
-        axios.get(`${import.meta.env.VITE_API_BASE_URL}/natural-persons`),
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/natural-persons`, { headers: getAuthHeaders() }),
       ]);
 
       const organizationList = organizationResponse.data?.organizations || [];
@@ -70,6 +119,7 @@ export default function AdminHome() {
       );
 
       setRequirementsByOrganization(requirementsResponses);
+      await loadPendingDonationsCount(organizationList, false);
     } finally {
       setLoading(false);
     }
@@ -78,6 +128,16 @@ export default function AdminHome() {
   useEffect(() => {
     loadDashboard();
   }, []);
+
+  useEffect(() => {
+    if (!organizations.length) return;
+
+    const timer = setInterval(() => {
+      loadPendingDonationsCount(organizations, true);
+    }, 20000);
+
+    return () => clearInterval(timer);
+  }, [organizations, loadPendingDonationsCount]);
 
   const filteredOrganizations = useMemo(() => {
     const instLower = institutionSearch.trim().toLowerCase();
@@ -208,7 +268,9 @@ export default function AdminHome() {
                 <Button onClick={() => setDonorsModalOpen(true)}>Gerenciar doadores</Button>
                 <Button onClick={() => setUsersModalOpen(true)}>Gerenciar usuários</Button>
                 <Button onClick={() => setOrganizationsModalOpen(true)}>Gerenciar instituições</Button>
-                <Button onClick={() => setDonationsModalOpen(true)}>Gerenciar doações</Button>
+                <Badge count={pendingDonationCount} overflowCount={99}>
+                  <Button onClick={() => setDonationsModalOpen(true)}>Gerenciar doações</Button>
+                </Badge>
                 <Link to="/admin/create-organization">
                   <Button>Cadastrar instituição</Button>
                 </Link>
@@ -367,6 +429,7 @@ export default function AdminHome() {
         open={donationsModalOpen}
         onClose={() => setDonationsModalOpen(false)}
         organizations={organizations}
+        onQueueChanged={() => loadPendingDonationsCount(organizations, false)}
       />
     </section>
   );
