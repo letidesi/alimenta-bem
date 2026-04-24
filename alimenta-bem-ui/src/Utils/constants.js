@@ -4,6 +4,12 @@ export const ROLE_OPTIONS = [
   { value: "Citizen",   label: "Citizen" },
 ];
 
+export const ROLE_OPTIONS_ASSIGN = [
+  { value: "Admin",     label: "Admin" },
+  { value: "Developer", label: "Developer" },
+  { value: "Citizen",   label: "Citizen" },
+];
+
 export const UNAVAILABLE_REASON_OPTIONS = [
   { value: "ReceivingInstability", label: "Instabilidade temporária de recebimento" },
   { value: "NeedAlreadyMet",       label: "Necessidade já atendida" },
