@@ -39,6 +39,7 @@ public class UserData : IUserData
     public async Task<List<User>> ReadList()
     {
         return await _context.Users
+            .AsNoTracking()
             .Include(u => u.roles)
             .ToListAsync();
     }
@@ -46,7 +47,6 @@ public class UserData : IUserData
     public async Task<User?> UpdateRole(Guid userId, string roleType)
     {
         var user = await _context.Users
-            .Include(u => u.roles)
             .Where(u => u.id.Equals(userId))
             .Where(u => u.deletedAt == null)
             .FirstOrDefaultAsync();
@@ -54,8 +54,12 @@ public class UserData : IUserData
         if (user is null)
             return null;
 
-        if (user.roles is not null && user.roles.Any())
-            _context.Roles.RemoveRange(user.roles);
+        var currentRoles = await _context.Roles
+            .Where(role => role.userId == user.id)
+            .ToListAsync();
+
+        if (currentRoles.Any())
+            _context.Roles.RemoveRange(currentRoles);
 
         _context.Roles.Add(new Role
         {
@@ -66,6 +70,7 @@ public class UserData : IUserData
         _ = await _context.SaveChangesAsync();
 
         return await _context.Users
+            .AsNoTracking()
             .Include(u => u.roles)
             .Where(u => u.id.Equals(userId))
             .Where(u => u.deletedAt == null)

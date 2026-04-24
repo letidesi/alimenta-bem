@@ -14,7 +14,7 @@ public class UserUpdateRoleEndpoint : Endpoint<UserUpdateRoleRequest, UserUpdate
     {
         Put("user/role");
         Options(u => u.WithTags("user"));
-        AllowAnonymous();
+        Roles(EnumRole.Admin.ToString(), EnumRole.Developer.ToString());
         Summary(s =>
         {
             s.Summary = "Update user role";
@@ -34,7 +34,7 @@ public class UserUpdateRoleEndpoint : Endpoint<UserUpdateRoleRequest, UserUpdate
                 userId = updatedUser.id,
                 name = updatedUser.name,
                 email = updatedUser.email,
-                role = updatedUser.roles?.FirstOrDefault()?.type ?? string.Empty
+                role = ResolveCurrentRole(updatedUser.roles)
             };
 
             await SendAsync(response, cancellation: ct);
@@ -43,5 +43,28 @@ public class UserUpdateRoleEndpoint : Endpoint<UserUpdateRoleRequest, UserUpdate
         {
             ThrowError(e.Message);
         }
+    }
+
+    private static string ResolveCurrentRole(ICollection<AlimentaBem.Src.Modules.Role.Repository.Role>? roles)
+    {
+        if (roles is null || roles.Count == 0)
+            return string.Empty;
+
+        return roles
+            .OrderByDescending(role => GetRolePriority(role.type))
+            .ThenByDescending(role => role.createdAt)
+            .Select(role => role.type)
+            .FirstOrDefault() ?? string.Empty;
+    }
+
+    private static int GetRolePriority(string role)
+    {
+        return role switch
+        {
+            nameof(EnumRole.Admin) => 3,
+            nameof(EnumRole.Developer) => 2,
+            nameof(EnumRole.Citizen) => 1,
+            _ => 0,
+        };
     }
 }

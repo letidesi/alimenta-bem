@@ -14,7 +14,7 @@ public class UserReadListEndpoint : EndpointWithoutRequest<UserReadListResponse>
     {
         Get("users");
         Options(u => u.WithTags("user"));
-        AllowAnonymous();
+        Roles(EnumRole.Admin.ToString(), EnumRole.Developer.ToString());
         Summary(s =>
         {
             s.Summary = "Read all users";
@@ -36,7 +36,7 @@ public class UserReadListEndpoint : EndpointWithoutRequest<UserReadListResponse>
                     userId = user.id,
                     name = user.name,
                     email = user.email,
-                    role = user.roles?.FirstOrDefault()?.type ?? string.Empty
+                    role = ResolveCurrentRole(user.roles)
                 }).ToList()
             };
 
@@ -46,5 +46,28 @@ public class UserReadListEndpoint : EndpointWithoutRequest<UserReadListResponse>
         {
             ThrowError(e.Message);
         }
+    }
+
+    private static string ResolveCurrentRole(ICollection<AlimentaBem.Src.Modules.Role.Repository.Role>? roles)
+    {
+        if (roles is null || roles.Count == 0)
+            return string.Empty;
+
+        return roles
+            .OrderByDescending(role => GetRolePriority(role.type))
+            .ThenByDescending(role => role.createdAt)
+            .Select(role => role.type)
+            .FirstOrDefault() ?? string.Empty;
+    }
+
+    private static int GetRolePriority(string role)
+    {
+        return role switch
+        {
+            nameof(EnumRole.Admin) => 3,
+            nameof(EnumRole.Developer) => 2,
+            nameof(EnumRole.Citizen) => 1,
+            _ => 0,
+        };
     }
 }

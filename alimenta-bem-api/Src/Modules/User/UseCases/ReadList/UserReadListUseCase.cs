@@ -19,12 +19,7 @@ namespace AlimentaBem.Src.Modules.User.UseCases.ReadList
 
         public async Task<List<User>> exec()
         {
-            var users = await _userData.ReadList();
-
-            if (users.Count == 0)
-                throw new Exception(_localizer["user:UserNotFound"]);
-
-            return users;
+            return await _userData.ReadList();
         }
     }
 }
