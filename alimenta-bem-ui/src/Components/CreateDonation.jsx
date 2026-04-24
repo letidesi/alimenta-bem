@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../Css/Style.css";
-import { getUserIdFromToken } from "../Utils/auth";
+import { getUserIdFromToken, getAuthHeaders, getJsonAuthHeaders } from "../Utils/auth";
 import { getDonationStatusLabel, getDonationStatusClassName } from "../Utils/donationStatus";
 
 const CreateDonation = () => {
@@ -44,7 +44,8 @@ const CreateDonation = () => {
     const fetchLoggedDonor = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/natural-person/${userId}`
+          `${import.meta.env.VITE_API_BASE_URL}/natural-person/${userId}`,
+          { headers: getAuthHeaders() }
         );
 
         const donor = response.data;
@@ -82,7 +83,8 @@ const CreateDonation = () => {
 
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/donations/natural-person/${naturalPersonId}`
+        `${import.meta.env.VITE_API_BASE_URL}/donations/natural-person/${naturalPersonId}`,
+        { headers: getAuthHeaders() }
       );
 
       setDonationsHistory(response.data?.donations || []);
@@ -151,7 +153,8 @@ const CreateDonation = () => {
     try {
       await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/donation`,
-        donationData
+        donationData,
+        { headers: getJsonAuthHeaders() }
       );
       setSuccessMessage("Doação realizada com sucesso!");
       await loadDonationHistory(donationData.naturalPersonId);

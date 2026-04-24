@@ -5,6 +5,11 @@ import "../Css/Style.css";
 import { validateEmailField } from "../Utils/validation";
 import PasswordInput from "./PasswordInput";
 
+function getHighestPriorityRole(roles) {
+  const rolePriority = ["Admin", "Developer", "Citizen"];
+  return rolePriority.find((role) => roles.includes(role)) || null;
+}
+
 const Login = () => {
   const [loginData, setLoginData] = useState({
     email: "",
@@ -55,10 +60,18 @@ const Login = () => {
       const decoded = parseJwt(accesstoken);
       const roles = decoded?.role || decoded?.roles;
 
-      const role = Array.isArray(roles) ? roles[0] : roles;
+      const normalizedRoles = Array.isArray(roles)
+        ? roles.map((role) => String(role))
+        : roles
+          ? [String(roles)]
+          : [];
+
+      const role = getHighestPriorityRole(normalizedRoles);
 
       if (role === "Admin") {
         navigate("/admin");
+      } else if (role === "Developer") {
+        navigate("/developer");
       } else if (role === "Citizen") {
         navigate("/logged-user");
       } else {

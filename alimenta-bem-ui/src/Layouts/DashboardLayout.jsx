@@ -3,6 +3,7 @@ import { Button, Drawer, Layout, Menu, Typography, Grid, Space } from "antd";
 import { MenuOutlined, LogoutOutlined, HeartFilled } from "@ant-design/icons";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { getAuthHeaders } from "../Utils/auth";
 import "../Css/Style.css";
 
 const { Sider, Header, Content } = Layout;
@@ -42,7 +43,8 @@ export default function DashboardLayout({ menuItems, roleLabel }) {
     const fetchUserName = async () => {
       try {
         const npResponse = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/natural-person/${userId}`
+          `${import.meta.env.VITE_API_BASE_URL}/natural-person/${userId}`,
+          { headers: getAuthHeaders() }
         );
         const naturalPerson = npResponse.data;
 
@@ -57,7 +59,8 @@ export default function DashboardLayout({ menuItems, roleLabel }) {
 
       try {
         const userResponse = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/user/${userId}`
+          `${import.meta.env.VITE_API_BASE_URL}/user/${userId}`,
+          { headers: getAuthHeaders() }
         );
         const user = userResponse.data;
         setUserName(user?.name || "Usuário");
