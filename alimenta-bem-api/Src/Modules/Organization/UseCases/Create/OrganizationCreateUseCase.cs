@@ -21,6 +21,7 @@ namespace AlimentaBem.Src.Modules.Organization.UseCases.Create
         {
 
             var createOrganization = await _organizationData.Create(naturalPerson);
+            
             if (createOrganization is null)
                 throw new Exception(_localizer["organization:IndividualCreationFailed"]);
 
