@@ -38,3 +38,6 @@ export const getDonationStatusClassName = (status) => {
 // Retorna true para status que não permitem mais transições pelo admin
 export const isDonationFinalized = (status) =>
   matchStatus(status, "received") || matchStatus(status, "temporarilyUnavailable");
+
+// Retorna true para doações novas que ainda precisam da primeira análise do admin
+export const isDonationPendingReview = (status) => matchStatus(status, "submitted");

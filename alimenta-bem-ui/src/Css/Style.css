@@ -486,6 +486,59 @@ form h2,
   font-size: 1.05rem;
 }
 
+.user-home-stack {
+  display: grid;
+  gap: 18px;
+}
+
+.user-home-donation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.user-home-donation-header h3 {
+  margin: 0;
+}
+
+.user-home-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+  align-items: flex-end;
+}
+
+.user-home-filter-field {
+  min-width: 220px;
+  flex: 1 1 220px;
+}
+
+.user-home-filter-field label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 700;
+  color: var(--text-700);
+}
+
+.user-home-filter-field select {
+  width: 100%;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(31, 95, 130, 0.28);
+  min-height: 42px;
+  padding: 8px 10px;
+  font: inherit;
+  background: #fff;
+}
+
+.user-home-filter-count {
+  margin: 0 0 10px;
+  color: var(--text-700);
+  font-size: 0.9rem;
+}
+
 .admin-dashboard {
   display: grid;
   gap: 18px;
@@ -835,6 +888,19 @@ form h2,
   }
 
   .requirement-list-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .user-home-filters {
+    align-items: stretch;
+  }
+
+  .user-home-filter-field {
+    min-width: 100%;
+  }
+
+  .user-home-donation-header {
     flex-direction: column;
     align-items: flex-start;
   }
