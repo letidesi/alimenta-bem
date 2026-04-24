@@ -14,7 +14,7 @@ public class NaturalPersonAdminDeleteEndpoint : Endpoint<NaturalPersonAdminDelet
     {
         Delete("natural-person/admin/{userId}");
         Options(n => n.WithTags("natural-person"));
-        AllowAnonymous();
+        Roles(EnumRole.Admin.ToString());
         Summary(s =>
         {
             s.Summary = "Soft delete a natural person by admin";

@@ -1,6 +1,7 @@
 using AlimentaBem.Context;
 using AlimentaBem.Helpers;
 using AlimentaBem.Src.Modules.Donation.UseCases.UpdateStatus.DTO;
+using AlimentaBem.Src.Modules.Role.Enum;
 
 namespace AlimentaBem.Src.Modules.Donation.UseCases.UpdateStatus;
 
@@ -13,7 +14,7 @@ public class DonationUpdateStatusEndpoint : Endpoint<DonationUpdateStatusRequest
     {
         Put("donation/status");
         Options(n => n.WithTags("donation"));
-        AllowAnonymous();
+        Roles(EnumRole.Admin.ToString());
         Summary(s =>
         {
             s.Summary = "Update donation status";
@@ -28,7 +29,7 @@ public class DonationUpdateStatusEndpoint : Endpoint<DonationUpdateStatusRequest
             var useCase = new DonationUpdateStatusUseCase(_context, _localizer);
 
             var response = await useCase.exec(req);
-            
+
             await SendAsync(response, cancellation: ct);
         }
         catch (Exception e)

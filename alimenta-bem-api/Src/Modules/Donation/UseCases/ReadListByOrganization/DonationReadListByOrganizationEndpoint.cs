@@ -1,5 +1,6 @@
 using AlimentaBem.Context;
 using AlimentaBem.Src.Modules.Donation.UseCases.ReadListByOrganization.DTO;
+using AlimentaBem.Src.Modules.Role.Enum;
 
 namespace AlimentaBem.Src.Modules.Donation.UseCases.ReadListByOrganization;
 
@@ -11,7 +12,7 @@ public class DonationReadListByOrganizationEndpoint : Endpoint<DonationReadListB
     {
         Get("donations/organization/{organizationId}");
         Options(n => n.WithTags("donation"));
-        AllowAnonymous();
+        Roles(EnumRole.Admin.ToString());
         Summary(s =>
         {
             s.Summary = "Read donations by organization";
@@ -26,7 +27,7 @@ public class DonationReadListByOrganizationEndpoint : Endpoint<DonationReadListB
             var useCase = new DonationReadListByOrganizationUseCase(_context);
 
             var response = await useCase.exec(req.organizationId);
-            
+
             await SendAsync(response, cancellation: ct);
         }
         catch (Exception e)

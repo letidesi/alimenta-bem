@@ -1,6 +1,7 @@
 ﻿using AlimentaBem.Helpers;
 using AlimentaBem.Context;
 using AlimentaBem.Src.Modules.Donation.UseCases.Create.DTO;
+using AlimentaBem.Src.Modules.Role.Enum;
 
 namespace AlimentaBem.Src.Modules.Donation.UseCases.Create;
 
@@ -15,10 +16,10 @@ public class DonationCreateEndPoint : Endpoint<DonationCreateRequest, DonationCr
         Options(n => n.WithTags("donation"));
         Summary(s =>
         {
-            s.Summary = "Create a new natural person";
-            s.Description = "Register a natural person on the platform";
+            s.Summary = "Create a new donation";
+            s.Description = "Register a donation on the platform";
         });
-        AllowAnonymous();
+        Roles(EnumRole.Citizen.ToString());
     }
 
     public override async Task HandleAsync(DonationCreateRequest req, CancellationToken ct)

@@ -1,5 +1,6 @@
 ﻿using AlimentaBem.Context;
 using AlimentaBem.Helpers;
+using AlimentaBem.Src.Modules.Role.Enum;
 using AlimentaBem.Src.Modules.NaturalPerson.UseCases.ReadOne.DTO;
 
 namespace AlimentaBem.Src.Modules.NaturalPerson.UseCases.ReadOne;
@@ -17,7 +18,7 @@ public class NaturalPersonReadOneEndPoint : Endpoint<NaturalPersonReadOneRequest
         {
             s.Summary = "Read a naturalPerson";
         });
-        AllowAnonymous();
+        Roles(EnumRole.Admin.ToString(), EnumRole.Citizen.ToString());
     }
 
     public override async Task HandleAsync(NaturalPersonReadOneRequest req, CancellationToken ct)

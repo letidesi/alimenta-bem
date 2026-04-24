@@ -1,5 +1,6 @@
 ﻿using AlimentaBem.Context;
 using AlimentaBem.Helpers;
+using AlimentaBem.Src.Modules.Role.Enum;
 using AlimentaBem.Src.Modules.NaturalPerson.UseCases.ReadList.DTO;
 
 namespace AlimentaBem.Src.Modules.NaturalPerson.UseCases.ReadList;
@@ -18,7 +19,7 @@ public class NaturalPersonReadListEndpoint : EndpointWithoutRequest<NaturalPerso
             s.Summary = "Get a list of naturalPersons";
             s.Description = "Retrieve a list of naturalPersons from the platform";
         });
-        AllowAnonymous();
+        Roles(EnumRole.Admin.ToString());
     }
 
     public override async Task HandleAsync(CancellationToken ct)

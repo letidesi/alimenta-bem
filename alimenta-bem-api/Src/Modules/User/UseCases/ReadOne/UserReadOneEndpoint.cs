@@ -1,5 +1,6 @@
 ﻿using AlimentaBem.Context;
 using AlimentaBem.Helpers;
+using AlimentaBem.Src.Modules.Role.Enum;
 using AlimentaBem.Src.Modules.User.UseCases.ReadOne.DTO;
 
 namespace AlimentaBem.Src.Modules.User.UseCases.ReadOne;
@@ -17,7 +18,7 @@ public class UserReadOneEndPoint : Endpoint<UserReadOneRequest, UserReadOneRespo
         {
             s.Summary = "Read auser";
         });
-        AllowAnonymous();
+        Roles(EnumRole.Admin.ToString(), EnumRole.Citizen.ToString());
     }
 
     public override async Task HandleAsync(UserReadOneRequest req, CancellationToken ct)

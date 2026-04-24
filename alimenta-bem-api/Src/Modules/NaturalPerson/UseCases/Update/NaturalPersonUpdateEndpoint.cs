@@ -1,5 +1,6 @@
 ﻿using AlimentaBem.Context;
 using AlimentaBem.Helpers;
+using AlimentaBem.Src.Modules.Role.Enum;
 using AlimentaBem.Src.Modules.NaturalPerson.UseCases.Update.DTO;
 
 namespace AlimentaBem.Src.Modules.NaturalPerson.UseCases.Update;
@@ -18,7 +19,7 @@ public class NaturalPersonUpdateEndPoint : Endpoint<NaturalPersonUpdateRequest, 
             s.Summary = "Update a new natural person";
             s.Description = "Update a natural person on the platform";
         });
-        AllowAnonymous();
+        Roles(EnumRole.Admin.ToString(), EnumRole.Citizen.ToString());
     }
 
     public override async Task HandleAsync(NaturalPersonUpdateRequest req, CancellationToken ct)

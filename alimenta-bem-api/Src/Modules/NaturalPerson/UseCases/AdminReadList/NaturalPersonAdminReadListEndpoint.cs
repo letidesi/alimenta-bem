@@ -14,7 +14,7 @@ public class NaturalPersonAdminReadListEndpoint : EndpointWithoutRequest<Natural
     {
         Get("natural-persons/admin");
         Options(n => n.WithTags("natural-person"));
-        AllowAnonymous();
+        Roles(EnumRole.Admin.ToString());
         Summary(s =>
         {
             s.Summary = "Read all natural persons for admin";

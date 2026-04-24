@@ -14,7 +14,7 @@ public class OrganizationDeleteEndpoint : Endpoint<OrganizationDeleteRequest, Or
     {
         Delete("organization/{id}");
         Options(n => n.WithTags("organization"));
-        AllowAnonymous();
+        Roles(EnumRole.Admin.ToString());
     }
 
     public override async Task HandleAsync(OrganizationDeleteRequest req, CancellationToken ct)

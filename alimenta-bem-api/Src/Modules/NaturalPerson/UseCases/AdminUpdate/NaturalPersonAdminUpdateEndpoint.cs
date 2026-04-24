@@ -15,7 +15,7 @@ public class NaturalPersonAdminUpdateEndpoint : Endpoint<NaturalPersonUpdateRequ
     {
         Put("natural-person/admin");
         Options(n => n.WithTags("natural-person"));
-        AllowAnonymous();
+        Roles(EnumRole.Admin.ToString());
         Summary(s =>
         {
             s.Summary = "Update natural person by admin";
