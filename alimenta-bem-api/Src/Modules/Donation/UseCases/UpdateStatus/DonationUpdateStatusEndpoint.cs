@@ -1,4 +1,5 @@
 using AlimentaBem.Context;
+using AlimentaBem.Helpers;
 using AlimentaBem.Src.Modules.Donation.UseCases.UpdateStatus.DTO;
 
 namespace AlimentaBem.Src.Modules.Donation.UseCases.UpdateStatus;
@@ -6,6 +7,7 @@ namespace AlimentaBem.Src.Modules.Donation.UseCases.UpdateStatus;
 public class DonationUpdateStatusEndpoint : Endpoint<DonationUpdateStatusRequest, DonationUpdateStatusResponse>
 {
     public AlimentaBemContext _context { get; init; }
+    public Localizer _localizer { get; init; }
 
     public override void Configure()
     {
@@ -23,8 +25,10 @@ public class DonationUpdateStatusEndpoint : Endpoint<DonationUpdateStatusRequest
     {
         try
         {
-            var useCase = new DonationUpdateStatusUseCase(_context);
+            var useCase = new DonationUpdateStatusUseCase(_context, _localizer);
+
             var response = await useCase.exec(req);
+            
             await SendAsync(response, cancellation: ct);
         }
         catch (Exception e)

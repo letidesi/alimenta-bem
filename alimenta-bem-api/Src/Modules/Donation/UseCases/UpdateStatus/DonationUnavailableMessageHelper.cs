@@ -1,21 +1,19 @@
+using AlimentaBem.Helpers;
 using DonationEnum = AlimentaBem.Src.Modules.Donation.Enum;
 
 namespace AlimentaBem.Src.Modules.Donation.UseCases.UpdateStatus;
 
 public static class DonationUnavailableMessageHelper
 {
-    public static string BuildForCitizen(DonationEnum.DonationUnavailableReason reason)
+    public static string BuildForCitizen(DonationEnum.DonationUnavailableReason reason, Localizer localizer)
     {
-        if (reason == DonationEnum.DonationUnavailableReason.NeedAlreadyMet)
+        var key = reason switch
         {
-            return "Obrigado pela sua doação. Esta necessidade já foi atendida no momento. Para não atrasar sua ajuda, escolha outra instituição ativa.";
-        }
+            DonationEnum.DonationUnavailableReason.NeedAlreadyMet => "donation:UnavailableMessageNeedAlreadyMet",
+            DonationEnum.DonationUnavailableReason.OfferNeedsAdjustment => "donation:UnavailableMessageOfferNeedsAdjustment",
+            _ => "donation:UnavailableMessageReceivingInstability",
+        };
 
-        if (reason == DonationEnum.DonationUnavailableReason.OfferNeedsAdjustment)
-        {
-            return "Obrigado pela sua doação. Um pequeno ajuste de item ou quantidade pode acelerar o recebimento. Para não atrasar sua ajuda, escolha outra instituição ativa.";
-        }
-
-        return "Obrigado pela sua doação. Esta instituição está com recebimento temporariamente instável. Para não atrasar sua ajuda, escolha outra instituição ativa.";
+        return localizer[key];
     }
 }

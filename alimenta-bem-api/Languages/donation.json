@@ -19,5 +19,61 @@
             "en-US": "Unable to create the donation.",
             "pt-BR": "Não foi possível criar a doação."
         }
+    },
+    {
+        "Key": "NotFound",
+        "LocalizedValues": {
+            "en-US": "Donation not found.",
+            "pt-BR": "Doação não encontrada."
+        }
+    },
+    {
+        "Key": "OrganizationMismatch",
+        "LocalizedValues": {
+            "en-US": "The donation does not belong to the selected organization.",
+            "pt-BR": "A doação não pertence à instituição selecionada."
+        }
+    },
+    {
+        "Key": "InvalidStatus",
+        "LocalizedValues": {
+            "en-US": "Invalid donation status.",
+            "pt-BR": "Status de doação inválido."
+        }
+    },
+    {
+        "Key": "InvalidStatusTransition",
+        "LocalizedValues": {
+            "en-US": "Invalid status transition for this donation.",
+            "pt-BR": "Transição de status inválida para esta doação."
+        }
+    },
+    {
+        "Key": "InvalidUnavailableReason",
+        "LocalizedValues": {
+            "en-US": "Select a valid reason for unavailability.",
+            "pt-BR": "Selecione um motivo válido para indisponibilidade."
+        }
+    },
+    {
+        "Key": "UnavailableMessageReceivingInstability",
+        "LocalizedValues": {
+            "en-US": "Thank you for your donation. This organization is temporarily experiencing receiving instability. To not delay your help, please choose another active organization.",
+            "pt-BR": "Obrigado pela sua doação. Esta instituição está com recebimento temporariamente instável. Para não atrasar sua ajuda, escolha outra instituição ativa."
+        }
+    },
+    {
+        "Key": "UnavailableMessageNeedAlreadyMet",
+        "LocalizedValues": {
+            "en-US": "Thank you for your donation. This need has already been met at the moment. To not delay your help, please choose another active organization.",
+            "pt-BR": "Obrigado pela sua doação. Esta necessidade já foi atendida no momento. Para não atrasar sua ajuda, escolha outra instituição ativa."
+        }
+    },
+    {
+        "Key": "UnavailableMessageOfferNeedsAdjustment",
+        "LocalizedValues": {
+            "en-US": "Thank you for your donation. A small adjustment to the item or quantity may speed up receipt. To not delay your help, please choose another active organization.",
+            "pt-BR": "Obrigado pela sua doação. Um pequeno ajuste de item ou quantidade pode acelerar o recebimento. Para não atrasar sua ajuda, escolha outra instituição ativa."
+        }
     }
 ]
