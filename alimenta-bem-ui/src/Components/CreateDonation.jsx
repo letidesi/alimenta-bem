@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { jwtDecode } from "jwt-decode";
-import "../Css/Style.css"; // Importando o CSS corretamente
+import "../Css/Style.css";
+import { getUserIdFromToken } from "../Utils/auth";
+import { getDonationStatusLabel, getDonationStatusClassName } from "../Utils/donationStatus";
 
 const CreateDonation = () => {
   const [donationData, setDonationData] = useState({
@@ -19,28 +20,23 @@ const CreateDonation = () => {
   const [historyLoading, setHistoryLoading] = useState(false);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/organizations`)
-      .then((res) => res.json())
-      .then((data) => {
-        setInstitutions(data.organizations);
-      })
-      .catch((err) => console.error("Erro ao carregar instituições:", err));
+    const loadInstitutions = async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/organizations`);
+        setInstitutions(response.data?.organizations || []);
+      } catch (error) {
+        console.error("Erro ao carregar instituições:", error);
+      }
+    };
+
+    loadInstitutions();
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-
-    if (!token) {
-      setErrorMessage("Usuário não autenticado para doar.");
-      setLoggedDonorName("Não identificado");
-      return;
-    }
-
-    const decodedToken = jwtDecode(token);
-    const userId = decodedToken?.sub || decodedToken?.userId || decodedToken?.id;
+    const userId = getUserIdFromToken();
 
     if (!userId) {
-      setErrorMessage("Não foi possível identificar o usuário logado.");
+      setErrorMessage("Usuário não autenticado para doar.");
       setLoggedDonorName("Não identificado");
       return;
     }
@@ -95,23 +91,6 @@ const CreateDonation = () => {
     } finally {
       setHistoryLoading(false);
     }
-  };
-
-  const statusLabel = (status) => {
-    if (status === "Submitted" || status === "Sent" || status === "Enviada") return "Enviada";
-    if (status === "InReview" || status === "UnderReview" || status === "EmAnalise") return "Em análise";
-    if (status === "ReadyForDelivery" || status === "AwaitingDelivery" || status === "AguardandoEntrega") return "Aguardando entrega";
-    if (status === "Received" || status === "Recebida") return "Recebida";
-    if (status === "TemporarilyUnavailable" || status === "UnavailableAtTheMoment" || status === "IndisponivelNoMomento") return "Indisponível no momento";
-    return status;
-  };
-
-  const statusClassName = (status) => {
-    if (status === "Received" || status === "Recebida") return "donation-status received";
-    if (status === "TemporarilyUnavailable" || status === "UnavailableAtTheMoment" || status === "IndisponivelNoMomento") return "donation-status unavailable";
-    if (status === "ReadyForDelivery" || status === "AwaitingDelivery" || status === "AguardandoEntrega") return "donation-status waiting";
-    if (status === "InReview" || status === "UnderReview" || status === "EmAnalise") return "donation-status analyzing";
-    return "donation-status sent";
   };
 
   const handleChange = (e) => {
@@ -290,8 +269,8 @@ const CreateDonation = () => {
                   </span>
                 </div>
                 <div className="donation-history-status-box">
-                  <span className={statusClassName(donation.status)}>
-                    {statusLabel(donation.status)}
+                  <span className={getDonationStatusClassName(donation.status)}>
+                    {getDonationStatusLabel(donation.status)}
                   </span>
                   {donation.unavailableMessage && (
                     <p className="donation-unavailable-message">{donation.unavailableMessage}</p>

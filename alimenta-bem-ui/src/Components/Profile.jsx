@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Switch } from "antd";
 import "../Css/Style.css";
-import { jwtDecode } from "jwt-decode";
+import { getUserIdFromToken } from "../Utils/auth";
 import { validateEmailField } from "../Utils/validation";
 
 const UpdateNaturalPerson = () => {
@@ -26,11 +26,8 @@ const UpdateNaturalPerson = () => {
   const validateEmail = (value) => validateEmailField(value, setEmailError);
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) return;
-
-    const decoded = jwtDecode(token);
-    const userId = decoded.sub || decoded.userId || decoded.id;
+    const userId = getUserIdFromToken();
+    if (!userId) return;
     setUserId(userId);
 
     const fetchUserData = async () => {
