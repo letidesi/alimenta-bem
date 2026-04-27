@@ -28,96 +28,109 @@ public partial class Program
         app.Run();
     }
 
-   public static void ConfigureServices(WebApplicationBuilder builder, bool isDevelopment)
-{
-    dotenv.net.DotEnv.Load();
-
-    string connectionString = builder.Configuration.GetConnectionString("sqlConnection");
-
-    builder.Services.AddDbContext<AlimentaBemContext>(options =>
-        options.UseSqlServer(connectionString));
-
-    builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true);
-
-    builder.Services.AddHttpContextAccessor();
-
-    if (isDevelopment)
+    public static void ConfigureServices(WebApplicationBuilder builder, bool isDevelopment)
     {
+        dotenv.net.DotEnv.Load();
+
+        string connectionString = builder.Configuration.GetConnectionString("sqlConnection")
+            ?? Environment.GetEnvironmentVariable("DATABASE_URL")!;
+
+        builder.Services.AddDbContext<AlimentaBemContext>(options =>
+            options.UseNpgsql(connectionString));
+
+        builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true);
+
+        builder.Services.AddHttpContextAccessor();
+
+        var allowedOrigins = new List<string> { "http://localhost:3000" };
+        var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL");
+        if (!string.IsNullOrEmpty(frontendUrl))
+            allowedOrigins.Add(frontendUrl);
+
         builder.Services.AddCors(options =>
         {
-            options.AddPolicy("AllowLocalhost3000",
+            options.AddPolicy("AllowOrigins",
+                b => b
+                  .WithOrigins(allowedOrigins.ToArray())
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials()
+            );
+        });
 
-        builder => builder
-          .WithOrigins("http://localhost:3000")
-          .AllowAnyMethod()
-          .AllowAnyHeader()
-          .AllowCredentials()
-      );
+
+        var publicKeyContent = Environment.GetEnvironmentVariable("RSA_PUBLIC_KEY");
+        string publicKeyText;
+
+        if (!string.IsNullOrEmpty(publicKeyContent))
+        {
+            publicKeyText = publicKeyContent.Replace("\\n", "\n");
+        }
+        else
+        {
+            var publicKeyPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "public.key");
+            publicKeyText = File.ReadAllText(publicKeyPath);
+        }
+
+        var rsa = RSA.Create();
+        rsa.ImportFromPem(publicKeyText.ToCharArray());
+
+        var rsaSecurityKey = new RsaSecurityKey(rsa);
+
+        // Configurar autenticação e autorização
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+
+                    ValidIssuer = "Alimentabem",
+                    ValidAudience = "ABem",
+
+                    IssuerSigningKey = rsaSecurityKey,
+
+                    RoleClaimType = ClaimTypes.Role
+                };
+            });
+
+        builder.Services.AddAuthorization(options =>
+        {
+            options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+        });
+
+        // Outros serviços
+        DependencyInjectionConfig.Register_Services(builder.Services);
+        CultureInfoConfig.Configure(builder.Services);
+
+        builder.Services.AddFastEndpoints();
+
+        var JWT_SECRET = builder.Configuration.GetSection("JWT_SECRET").Value!;
+
+        builder.Services.AddControllers();
+        builder.Services.AddFastEndpoints();
+
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerDocument(document =>
+        {
+            document.Title = "AlimentaBem";
+            document.Version = "v1";
+            document.OperationProcessors.Add(new PatchOperationProcessor());
+            document.OperationProcessors.Add(new AcceptLanguageHeaderOperationProcessor(builder.Services.BuildServiceProvider().GetService<IOptions<RequestLocalizationOptions>>()));
         });
     }
-
-   
-    var publicKeyPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "public.key");
-    var publicKeyText = File.ReadAllText(publicKeyPath);
-
-    var rsa = RSA.Create();
-    rsa.ImportFromPem(publicKeyText.ToCharArray());
-
-    var rsaSecurityKey = new RsaSecurityKey(rsa);
-
-    // Configurar autenticação e autorização
-    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddJwtBearer(options =>
-        {
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-
-                ValidIssuer = "Alimentabem",
-                ValidAudience = "ABem",
-
-                IssuerSigningKey = rsaSecurityKey,
-
-                RoleClaimType = ClaimTypes.Role
-            };
-        });
-
-    builder.Services.AddAuthorization(options =>
-    {
-        options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
-    });
-
-    // Outros serviços
-    DependencyInjectionConfig.Register_Services(builder.Services);
-    CultureInfoConfig.Configure(builder.Services);
-
-    builder.Services.AddFastEndpoints();
-
-    var JWT_SECRET = builder.Configuration.GetSection("JWT_SECRET").Value!;
-
-    builder.Services.AddControllers();
-    builder.Services.AddFastEndpoints();
-
-    builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
-    builder.Services.AddSwaggerDocument(document =>
-    {
-        document.Title = "AlimentaBem";
-        document.Version = "v1";
-        document.OperationProcessors.Add(new PatchOperationProcessor());
-        document.OperationProcessors.Add(new AcceptLanguageHeaderOperationProcessor(builder.Services.BuildServiceProvider().GetService<IOptions<RequestLocalizationOptions>>()));
-    });
-}
 
     public static void ConfigureApp(WebApplication app, bool isStaging, bool isDevelopment)
     {
         if (isDevelopment)
         {
-            app.UseCors("AllowLocalhost3000");
+            app.UseCors("AllowOrigins");
         }
+        app.UseCors("AllowOrigins");
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseFastEndpoints(c => c.Serializer.Options.ReferenceHandler = ReferenceHandler.IgnoreCycles);
