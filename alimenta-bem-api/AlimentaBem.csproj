@@ -30,10 +30,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="public.key">
+    <Content Include="public.key" Condition="Exists('public.key')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="private.key">
+    <Content Include="private.key" Condition="Exists('private.key')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

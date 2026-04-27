@@ -12,7 +12,16 @@ namespace AlimentaBem.Src.Providers.Crypto;
 public class CryptoService : ICryptoProvider
 {
     private readonly string JWT_SECRET = Environment.GetEnvironmentVariable("JWT_SECRET");
-    private readonly string privateKEY = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "private.key");
+    private readonly string privateKEY = GetPrivateKey();
+
+    private static string GetPrivateKey()
+    {
+        var privateKeyContent = Environment.GetEnvironmentVariable("RSA_PRIVATE_KEY");
+        if (!string.IsNullOrWhiteSpace(privateKeyContent))
+            return privateKeyContent.Replace("\\n", "\n");
+
+        return File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "private.key"));
+    }
 
     private SigningCredentials getSecurityKey()
     {
