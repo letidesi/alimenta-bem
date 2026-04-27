@@ -5,7 +5,7 @@ namespace AlimentaBem.Helpers;
 
 public class Localizer
 {
-    private readonly Dictionary<string, JsonLocalization[]> _localization = new ();
+    private readonly Dictionary<string, JsonLocalization[]> _localization = new();
     private readonly CultureInfo[] SUPPORTED_CULTURES = new CultureInfo[] { new("en-US"), new("pt-BR") };
 
     private readonly IHttpContextAccessor _httpContextAccessor;
@@ -14,7 +14,7 @@ public class Localizer
     {
         _httpContextAccessor = httpContextAccessor;
 
-        if (useBase) PopulateLocalization("languages");
+        if (useBase) PopulateLocalization(ResolveBaseLocalizationPath());
         if (additionalPaths == null) return;
 
         foreach (var additional in additionalPaths)
@@ -55,6 +55,23 @@ public class Localizer
         }
     }
 
+    private static string ResolveBaseLocalizationPath()
+    {
+        var candidates = new[]
+        {
+            Path.Combine(AppContext.BaseDirectory, "Languages"),
+            Path.Combine(AppContext.BaseDirectory, "languages"),
+            "Languages",
+            "languages"
+        };
+
+        var resolved = candidates.FirstOrDefault(Directory.Exists);
+        if (resolved is null)
+            throw new DirectoryNotFoundException($"Localization folder not found. Tried: {string.Join(", ", candidates)}");
+
+        return resolved;
+    }
+
     private void LoadResourceFile(string resource)
     {
         var fileInfo = new FileInfo(resource);
@@ -66,11 +83,11 @@ public class Localizer
     private string GetString(string query)
     {
         QueryParameters parameters = HandleQuery(query);
-        
+
         var resource = _localization.SingleOrDefault(l => l.Key == parameters.Resource);
         if (resource.Value is null)
             throw new I18NException($"Couldn't find resource: {parameters.Resource}");
-        
+
         var key = resource.Value.SingleOrDefault(x => x.Key == parameters.Key);
         if (key is null)
             throw new I18NException($"Couldn't find key: {parameters.Key}");
