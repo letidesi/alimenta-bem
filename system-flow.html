@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Alimenta Bem – Fluxo do Sistema</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f9;
+      color: #222;
+      padding: 32px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 1.6rem;
+      margin-bottom: 8px;
+      color: #1a5c38;
+    }
+    p.subtitle {
+      text-align: center;
+      color: #555;
+      margin-bottom: 32px;
+      font-size: 0.9rem;
+    }
+    .diagram-container {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      padding: 32px;
+      max-width: 1100px;
+      margin: 0 auto 48px auto;
+    }
+    .diagram-container h2 {
+      font-size: 1.1rem;
+      color: #1a5c38;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #d4edda;
+      padding-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Alimenta Bem – Fluxo do Sistema</h1>
+<p class="subtitle">Visão geral dos fluxos de autenticação, papéis, doações e administração</p>
+
+<!-- 1. Fluxo de Autenticação e Roteamento -->
+<div class="diagram-container">
+  <h2>1. Autenticação e Roteamento por Papel</h2>
+  <div class="mermaid">
+flowchart TD
+    A([Inicio]) --> B{"Possui token valido?"}
+    B -- Nao --> C["Pagina: /login"]
+    B -- Sim --> D{"Papel do usuario"}
+    D -- Admin --> E["Pagina: /admin"]
+    D -- Developer --> F["Pagina: /developer"]
+    D -- Citizen --> G["Pagina: /logged-user"]
+    C --> H["Formulario de Login<br/>POST /api/user/login"]
+    H --> I{"Credenciais validas?"}
+    I -- Nao --> J[Mensagem de erro]
+    I -- Sim --> K["JWT salvo no localStorage"]
+    K --> D
+    C2[Novo usuario] --> L["Cadastro: /create-user<br/>POST /api/user/create"]
+    L --> C
+  </div>
+</div>
+
+<!-- 2. Área do Cidadão -->
+<div class="diagram-container">
+  <h2>2. Área do Cidadão (Citizen)</h2>
+  <div class="mermaid">
+flowchart TD
+    G(["/logged-user"]) --> UH["UserHome<br/>Lista suas doacoes"]
+    G --> PF["Profile<br/>Editar perfil"]
+    G --> CD["Criar doacao: /logged-user/create-donation"]
+    CD --> D1[Preenche dados da doacao]
+    D1 --> D2["POST /api/donation/create"]
+    D2 --> D3{"Sucesso?"}
+    D3 -- Sim --> D4["Status: Submitted<br/>Aguardando revisao"]
+    D3 -- Nao --> D5[Exibe erro da API]
+    D4 --> DS[Fluxo de Status da Doacao]
+  </div>
+</div>
+
+<!-- 3. Fluxo de Status da Doação -->
+<div class="diagram-container">
+  <h2>3. Fluxo de Status da Doação</h2>
+  <div class="mermaid">
+stateDiagram-v2
+    [*] --> Submitted : Cidadao cria doacao
+    Submitted --> InReview : Admin inicia revisao
+    InReview --> ReadyForDelivery : Admin aprova
+    InReview --> TemporarilyUnavailable : Problema identificado
+    TemporarilyUnavailable --> InReview : Reativado
+    ReadyForDelivery --> Received : Organizacao confirma recebimento
+    Received --> [*]
+  </div>
+</div>
+
+<!-- 4. Área do Administrador -->
+<div class="diagram-container">
+  <h2>4. Área do Administrador (Admin)</h2>
+  <div class="mermaid">
+flowchart TD
+    E(["/admin"]) --> AH["AdminHome<br/>Painel geral"]
+    E --> PA[Profile]
+    E --> CP["Cadastrar Pessoa Fisica<br/>/admin/create-person"]
+    E --> CO["Cadastrar Organizacao<br/>/admin/create-organization"]
+    E --> OR["Requisitos da Organizacao<br/>/admin/organization-req"]
+    AH --> M1["UsersModal<br/>Gerenciar usuarios e papeis"]
+    AH --> M2["OrganizationsModal<br/>Gerenciar organizacoes"]
+    AH --> M3["DonationQueueModal<br/>Fila de doacoes"]
+    AH --> M4["DonorsModal<br/>Listar doadores"]
+    AH --> M5["EditRequirementModal<br/>Editar requisitos"]
+    M1 --> R1["PATCH /api/user/update-role<br/>Remove papeis antigos e atribui novo papel"]
+    M3 --> R2["PATCH /api/donation/update-status<br/>Atualiza status da doacao"]
+  </div>
+</div>
+
+<!-- 5. Área do Developer -->
+<div class="diagram-container">
+  <h2>5. Área do Desenvolvedor (Developer)</h2>
+  <div class="mermaid">
+flowchart TD
+    F(["/developer"]) --> DH["DeveloperHome<br/>Painel tecnico e configuracoes"]
+  </div>
+</div>
+
+<!-- 6. Arquitetura Backend -->
+<div class="diagram-container">
+  <h2>6. Arquitetura do Backend (API .NET 8)</h2>
+  <div class="mermaid">
+flowchart LR
+    UI(["Frontend React + Vite"]) -->|"HTTP + JSON + JWT"| APIGW
+
+    subgraph APIGW ["Backend ASP.NET Core 8"]
+      direction TB
+      PR["Program.cs<br/>DI + Middleware"] --> MC[Modulos]
+      MC --> MU[User]
+      MC --> MNP[NaturalPerson]
+      MC --> MO[Organization]
+      MC --> MOR[OrganizationRequirement]
+      MC --> MD[Donation]
+      MC --> MR[Role]
+    end
+
+    APIGW -->|"EF Core"| DB[("PostgreSQL")]
+
+    subgraph Modulo ["Estrutura de cada modulo"]
+      direction TB
+      UC["UseCases<br/>Create / ReadList / Update"] --> RP[Repository]
+      RP --> DM["DataMapping<br/>FluentAPI"]
+    end
+  </div>
+</div>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose' });
+</script>
+</body>
+</html>
