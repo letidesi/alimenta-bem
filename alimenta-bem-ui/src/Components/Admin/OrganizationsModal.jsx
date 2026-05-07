@@ -19,6 +19,7 @@ export default function OrganizationsModal({ open, onClose, organizations, onRef
       name:        organization.name,
       type:        organization.type,
       description: organization.description,
+      cnpj:        organization.cnpj || "",
     });
   };
 
@@ -34,7 +35,7 @@ export default function OrganizationsModal({ open, onClose, organizations, onRef
       setSaving(true);
       await axios.put(
         `${import.meta.env.VITE_API_BASE_URL}/organization`,
-        { id: values.id, name: values.name, type: values.type, description: values.description },
+        { id: values.id, name: values.name, type: values.type, description: values.description, cnpj: values.cnpj || null },
         { headers: getJsonAuthHeaders() }
       );
       message.success("Instituição atualizada com sucesso.");
@@ -129,6 +130,10 @@ export default function OrganizationsModal({ open, onClose, organizations, onRef
 
           <Form.Item label="Descrição" name="description">
             <Input.TextArea rows={3} />
+          </Form.Item>
+
+          <Form.Item label="CNPJ (opcional)" name="cnpj">
+            <Input placeholder="00.000.000/0000-00" maxLength={18} />
           </Form.Item>
         </Form>
       </Modal>

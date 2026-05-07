@@ -7,6 +7,7 @@ const CreateOrganization = () => {
     name: "",
     type: "",
     description: "",
+    cnpj: "",
   });
 
   const [successMessage, setSuccessMessage] = useState("");
@@ -73,6 +74,17 @@ const CreateOrganization = () => {
             name="description"
             value={organizationData.description}
             onChange={handleChange}
+          />
+        </div>
+        <div className="form-group">
+          <label>CNPJ (opcional)</label>
+          <input
+            type="text"
+            name="cnpj"
+            value={organizationData.cnpj}
+            onChange={handleChange}
+            placeholder="00.000.000/0000-00"
+            maxLength={18}
           />
         </div>
         <button type="submit" className="submit-btn">
