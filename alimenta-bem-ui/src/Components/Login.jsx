@@ -115,6 +115,9 @@ const Login = () => {
           <Link to="/create-user" className="submit-btn-register">
             Registra-se
           </Link>
+          <Link to="/forgot-password" className="submit-btn-register">
+            Esqueceu a senha
+          </Link>
         </div>
       </form>
 

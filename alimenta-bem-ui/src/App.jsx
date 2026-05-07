@@ -8,6 +8,8 @@ import DeveloperUserLayout from "./Layouts/DeveloperUserLayout";
 
 import Login from "./Components/Login";
 import CreateUser from "./Components/CreateUser";
+import ForgotPassword from "./Components/ForgotPassword";
+import ResetPassword from "./Components/ResetPassword";
 import CreateNaturalPerson from "./Components/CreateNaturalPerson";
 import CreateOrganization from "./Components/CreateOrganization";
 import CreateOrganizationRequirement from "./Components/CreateOrganizationRequirement";
@@ -96,6 +98,8 @@ function App() {
         <Route element={<PublicLayout />}>
           <Route path="/login" element={<Login />} />
           <Route path="/create-user" element={<CreateUser />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
         </Route>
 
         <Route
