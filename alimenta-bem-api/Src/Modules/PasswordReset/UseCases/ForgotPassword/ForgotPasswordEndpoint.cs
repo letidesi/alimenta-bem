@@ -13,7 +13,6 @@ public class ForgotPasswordEndpoint : Endpoint<ForgotPasswordRequest>
     public Localizer _localizer { get; init; }
     public IResend _resend { get; init; }
     public IConfiguration _configuration { get; init; }
-    public IWebHostEnvironment _env { get; init; }
 
     public override void Configure()
     {
@@ -62,13 +61,15 @@ public class ForgotPasswordEndpoint : Endpoint<ForgotPasswordRequest>
             var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "http://localhost:3000";
             var resetLink = $"{frontendUrl}/reset-password?token={token}";
 
-            if (_env.IsDevelopment())
+            var fromEmail = _configuration["Resend:FromEmail"] ?? "onboarding@resend.dev";
+            var isDev = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RESEND_API_KEY"));
+
+            if (isDev)
             {
                 Console.WriteLine($"[DEV] Reset link for {user.email}: {resetLink}");
             }
             else
             {
-                var fromEmail = _configuration["Resend:FromEmail"] ?? "onboarding@resend.dev";
                 await _resend.EmailSendAsync(new EmailMessage
                 {
                     From = fromEmail,
