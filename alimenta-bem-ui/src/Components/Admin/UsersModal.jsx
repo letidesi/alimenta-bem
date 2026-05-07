@@ -3,6 +3,7 @@ import axios from "axios";
 import { Button, Card, Empty, Form, Input, Modal, Popconfirm, Select, Space, Spin, Tag, message } from "antd";
 import { getAuthHeaders, getJsonAuthHeaders } from "../../Utils/auth";
 import { ROLE_OPTIONS_ADMIN } from "../../Utils/constants";
+import { extractApiError } from "../../Utils/apiError";
 
 export default function UsersModal({ open, onClose, organizations = [] }) {
   const [usersList, setUsersList] = useState([]);
@@ -64,8 +65,7 @@ export default function UsersModal({ open, onClose, organizations = [] }) {
       message.success("Usuário excluído com sucesso.");
       await loadUsers();
     } catch (error) {
-      const msg = error?.response?.data?.errors?.[0]?.reason || "Não foi possível excluir o usuário.";
-      message.error(msg);
+      message.error(extractApiError(error, "Não foi possível excluir o usuário."));
     } finally {
       setDeletingUserId(null);
     }
@@ -94,8 +94,7 @@ export default function UsersModal({ open, onClose, organizations = [] }) {
       await loadUsers();
     } catch (error) {
       if (!error?.errorFields) {
-        const msg = error?.response?.data?.message || "Não foi possível criar o usuário.";
-        message.error(msg);
+        message.error(extractApiError(error, "Não foi possível criar o usuário."));
       }
     } finally {
       setAddSaving(false);

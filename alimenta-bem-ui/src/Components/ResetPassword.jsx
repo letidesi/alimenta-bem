@@ -4,6 +4,7 @@ import axios from "axios";
 import { message } from "antd";
 import "../Css/Style.css";
 import PasswordInput from "./PasswordInput";
+import { extractApiError } from "../Utils/apiError";
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
@@ -35,9 +36,7 @@ const ResetPassword = () => {
       });
       navigate("/login", { state: { message: "Senha redefinida com sucesso! Faça login." } });
     } catch (error) {
-      const msg = error?.response?.data?.errors?.[0]?.reason
-        || "Token inválido ou expirado. Solicite um novo link.";
-      message.error(msg);
+      message.error(extractApiError(error, "Token inválido ou expirado. Solicite um novo link."));
     } finally {
       setLoading(false);
     }

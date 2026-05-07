@@ -4,6 +4,7 @@ import { message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import '../Css/Style.css';
 import { validateEmailField } from '../Utils/validation';
+import { extractApiError } from '../Utils/apiError';
 import PasswordInput from './PasswordInput';
 
 const EMPTY_FORM = { name: '', email: '', password: '' };
@@ -28,10 +29,7 @@ const CreateUser = () => {
             setUserData(EMPTY_FORM);
             setTimeout(() => navigate('/login'), 1500);
         } catch (error) {
-            const msg = error?.response?.data?.errors?.[0]?.reason
-                || error?.response?.data?.message
-                || 'Ocorreu um erro ao criar o usuário.';
-            message.error(msg);
+            message.error(extractApiError(error, 'Ocorreu um erro ao criar o usuário.'));
         } finally {
             setLoading(false);
         }

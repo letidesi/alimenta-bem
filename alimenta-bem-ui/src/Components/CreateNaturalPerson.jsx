@@ -5,6 +5,7 @@ import { message } from 'antd';
 import '../Css/Style.css';
 import { validateEmailField } from '../Utils/validation';
 import PasswordInput from './PasswordInput';
+import { extractApiError } from '../Utils/apiError';
 
 const EMPTY_FORM = {
     emailUser: '', password: '', firstName: '', lastName: '',
@@ -46,9 +47,7 @@ const CreateNaturalPerson = () => {
             message.success('Doador criado com sucesso!');
             setPersonData(EMPTY_FORM);
         } catch (error) {
-            const apiErrors = error?.response?.data?.errors;
-            const firstError = Array.isArray(apiErrors) ? apiErrors[0]?.reason : apiErrors?.GeneralErrors?.[0];
-            message.error(firstError || 'Ocorreu um erro ao criar o doador.');
+            message.error(extractApiError(error, 'Ocorreu um erro ao criar o doador.'));
         } finally {
             setLoading(false);
         }

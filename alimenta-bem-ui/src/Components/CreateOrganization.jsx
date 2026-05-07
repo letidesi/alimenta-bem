@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { message } from "antd";
+import { extractApiError } from "../Utils/apiError";
 import "../Css/Style.css";
 
 const EMPTY_FORM = { name: "", type: "", description: "", cnpj: "" };
@@ -22,8 +23,7 @@ const CreateOrganization = () => {
       message.success("Instituição criada com sucesso!");
       setOrganizationData(EMPTY_FORM);
     } catch (error) {
-      const msg = error?.response?.data?.errors?.[0]?.reason || "Ocorreu um erro ao criar a instituição.";
-      message.error(msg);
+      message.error(extractApiError(error, "Ocorreu um erro ao criar a instituição."));
     } finally {
       setLoading(false);
     }
