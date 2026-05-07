@@ -288,7 +288,9 @@ form h2,
 
 .form-group-register {
   margin-top: 12px;
-  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .submit-btn-register {
