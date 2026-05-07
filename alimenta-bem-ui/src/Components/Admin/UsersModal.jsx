@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Button, Card, Empty, Form, Input, Modal, Select, Space, Spin, Tag, message } from "antd";
+import { Button, Card, Empty, Form, Input, Modal, Popconfirm, Select, Space, Spin, Tag, message } from "antd";
 import { getAuthHeaders, getJsonAuthHeaders } from "../../Utils/auth";
 import { ROLE_OPTIONS_ADMIN } from "../../Utils/constants";
 
@@ -9,6 +9,7 @@ export default function UsersModal({ open, onClose, organizations = [] }) {
   const [pendingRoles, setPendingRoles] = useState({});
   const [loading, setLoading] = useState(false);
   const [savingUserId, setSavingUserId] = useState(null);
+  const [deletingUserId, setDeletingUserId] = useState(null);
 
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [addSaving, setAddSaving] = useState(false);
@@ -53,6 +54,20 @@ export default function UsersModal({ open, onClose, organizations = [] }) {
       message.error("Não foi possível atualizar o cargo.");
     } finally {
       setSavingUserId(null);
+    }
+  };
+
+  const handleDelete = async (userId) => {
+    setDeletingUserId(userId);
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/user/${userId}`, { headers: getAuthHeaders() });
+      message.success("Usuário excluído com sucesso.");
+      await loadUsers();
+    } catch (error) {
+      const msg = error?.response?.data?.errors?.[0]?.reason || "Não foi possível excluir o usuário.";
+      message.error(msg);
+    } finally {
+      setDeletingUserId(null);
     }
   };
 
@@ -137,6 +152,15 @@ export default function UsersModal({ open, onClose, organizations = [] }) {
                     >
                       Salvar cargo
                     </Button>
+                    <Popconfirm
+                      title="Excluir usuário"
+                      description="Tem certeza que deseja excluir este usuário?"
+                      okText="Excluir"
+                      cancelText="Cancelar"
+                      onConfirm={() => handleDelete(user.userId)}
+                    >
+                      <Button danger loading={deletingUserId === user.userId}>Excluir</Button>
+                    </Popconfirm>
                   </Space>
                 </div>
               </Card>
