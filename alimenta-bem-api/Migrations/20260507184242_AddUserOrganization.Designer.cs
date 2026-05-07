@@ -3,6 +3,7 @@ using System;
 using AlimentaBem.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AlimentaBem.Migrations
 {
     [DbContext(typeof(AlimentaBemContext))]
-    partial class AlimentaBemContextModelSnapshot : ModelSnapshot
+    [Migration("20260507184242_AddUserOrganization")]
+    partial class AddUserOrganization
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -133,9 +136,6 @@ namespace AlimentaBem.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("cnpj")
-                        .HasColumnType("text");
-
                     b.Property<DateTimeOffset>("createdAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -193,33 +193,6 @@ namespace AlimentaBem.Migrations
                     b.HasIndex("organizationId");
 
                     b.ToTable("OrganizationRequirements");
-                });
-
-            modelBuilder.Entity("AlimentaBem.Src.Modules.PasswordReset.Repository.PasswordResetToken", b =>
-                {
-                    b.Property<Guid>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("createdAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("expiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("token")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("used")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid>("userId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("id");
-
-                    b.ToTable("PasswordResetTokens");
                 });
 
             modelBuilder.Entity("AlimentaBem.Src.Modules.Role.Repository.Role", b =>
