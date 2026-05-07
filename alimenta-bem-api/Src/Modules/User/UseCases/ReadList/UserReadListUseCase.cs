@@ -17,8 +17,11 @@ namespace AlimentaBem.Src.Modules.User.UseCases.ReadList
             _userData = new UserData(context);
         }
 
-        public async Task<List<User>> exec()
+        public async Task<List<User>> exec(IEnumerable<Guid>? filterOrgIds = null)
         {
+            if (filterOrgIds is not null)
+                return await _userData.ReadListByOrgIds(filterOrgIds);
+
             return await _userData.ReadList();
         }
     }

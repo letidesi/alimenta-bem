@@ -44,6 +44,19 @@ public class UserData : IUserData
             .ToListAsync();
     }
 
+    public async Task<List<User>> ReadListByOrgIds(IEnumerable<Guid> orgIds)
+    {
+        var userIds = _context.UserOrganizations
+            .Where(uo => orgIds.Contains(uo.organizationId))
+            .Select(uo => uo.userId);
+
+        return await _context.Users
+            .AsNoTracking()
+            .Include(u => u.roles)
+            .Where(u => userIds.Contains(u.id))
+            .ToListAsync();
+    }
+
     public async Task<User?> UpdateRole(Guid userId, string roleType)
     {
         var user = await _context.Users

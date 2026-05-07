@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AlimentaBem.Context;
 using AlimentaBem.Helpers;
 using AlimentaBem.Src.Modules.Role.Enum;
@@ -27,7 +28,12 @@ public class UserUpdateRoleEndpoint : Endpoint<UserUpdateRoleRequest, UserUpdate
         try
         {
             var useCase = new UserUpdateRoleUseCase(_context, _localizer);
-            var updatedUser = await useCase.exec(req.userId, req.role);
+
+            Guid? adminUserId = null;
+            if (User.IsInRole(EnumRole.Admin.ToString()) && !User.IsInRole(EnumRole.Developer.ToString()))
+                adminUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var updatedUser = await useCase.exec(req.userId, req.role, adminUserId);
 
             var response = new UserUpdateRoleResponse
             {

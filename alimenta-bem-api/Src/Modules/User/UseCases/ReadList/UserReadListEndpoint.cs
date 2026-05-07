@@ -1,7 +1,9 @@
+using System.Security.Claims;
 using AlimentaBem.Context;
 using AlimentaBem.Helpers;
 using AlimentaBem.Src.Modules.Role.Enum;
 using AlimentaBem.Src.Modules.User.UseCases.ReadList.DTO;
+using AlimentaBem.Src.Modules.UserOrganization.Repository;
 
 namespace AlimentaBem.Src.Modules.User.UseCases.ReadList;
 
@@ -18,7 +20,7 @@ public class UserReadListEndpoint : EndpointWithoutRequest<UserReadListResponse>
         Summary(s =>
         {
             s.Summary = "Read all users";
-            s.Description = "Retrieve all users and their current role";
+            s.Description = "Admins see only users linked to their organizations; developers see all.";
         });
     }
 
@@ -27,7 +29,16 @@ public class UserReadListEndpoint : EndpointWithoutRequest<UserReadListResponse>
         try
         {
             var useCase = new UserReadListUseCase(_context, _localizer);
-            var users = await useCase.exec();
+
+            IEnumerable<Guid>? filterOrgIds = null;
+            if (User.IsInRole(EnumRole.Admin.ToString()) && !User.IsInRole(EnumRole.Developer.ToString()))
+            {
+                var adminUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                var userOrgData = new UserOrganizationData(_context);
+                filterOrgIds = await userOrgData.GetOrganizationIdsByUser(adminUserId);
+            }
+
+            var users = await useCase.exec(filterOrgIds);
 
             var response = new UserReadListResponse
             {
