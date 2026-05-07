@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { message } from "antd";
 import "../Css/Style.css";
 import PasswordInput from "./PasswordInput";
 
@@ -12,19 +13,17 @@ const ResetPassword = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMessage("");
 
     if (newPassword !== confirm) {
-      setErrorMessage("As senhas não coincidem.");
+      message.error("As senhas não coincidem.");
       return;
     }
 
     if (newPassword.length < 6) {
-      setErrorMessage("A senha deve ter no mínimo 6 caracteres.");
+      message.error("A senha deve ter no mínimo 6 caracteres.");
       return;
     }
 
@@ -38,7 +37,7 @@ const ResetPassword = () => {
     } catch (error) {
       const msg = error?.response?.data?.errors?.[0]?.reason
         || "Token inválido ou expirado. Solicite um novo link.";
-      setErrorMessage(msg);
+      message.error(msg);
     } finally {
       setLoading(false);
     }
@@ -85,8 +84,6 @@ const ResetPassword = () => {
           {loading ? "Salvando..." : "Redefinir senha"}
         </button>
       </form>
-
-      {errorMessage && <div className="error-message">{errorMessage}</div>}
     </div>
   );
 };

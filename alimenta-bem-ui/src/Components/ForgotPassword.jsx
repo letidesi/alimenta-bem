@@ -1,23 +1,22 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { message } from "antd";
 import "../Css/Style.css";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMessage("");
     setLoading(true);
     try {
       await axios.post(`${import.meta.env.VITE_API_BASE_URL}/user/forgot-password`, { email });
       setSubmitted(true);
     } catch {
-      setErrorMessage("Ocorreu um erro. Tente novamente.");
+      message.error("Ocorreu um erro. Tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -61,8 +60,6 @@ const ForgotPassword = () => {
           </Link>
         </div>
       </form>
-
-      {errorMessage && <div className="error-message">{errorMessage}</div>}
     </div>
   );
 };

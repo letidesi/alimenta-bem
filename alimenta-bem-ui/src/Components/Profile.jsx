@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Switch } from "antd";
+import { Switch, message } from "antd";
 import "../Css/Style.css";
 import { getUserIdFromToken, getAuthHeaders, getJsonAuthHeaders } from "../Utils/auth";
 import { validateEmailField } from "../Utils/validation";
@@ -19,8 +19,6 @@ const UpdateNaturalPerson = () => {
   });
 
   const [userId, setUserId] = useState(null);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
   const [emailError, setEmailError] = useState("");
 
   const validateEmail = (value) => validateEmailField(value, setEmailError);
@@ -94,9 +92,6 @@ const UpdateNaturalPerson = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSuccessMessage("");
-    setErrorMessage("");
-
     if (!validateEmail(personData.email)) return;
 
     try {
@@ -109,9 +104,9 @@ const UpdateNaturalPerson = () => {
         payload,
         { headers: getJsonAuthHeaders() }
       );
-      setSuccessMessage("Perfil completado com sucesso!");
+      message.success("Perfil completado com sucesso!");
     } catch (error) {
-      setErrorMessage("Ocorreu um erro ao completar o perfil.");
+      message.error("Ocorreu um erro ao completar o perfil.");
     }
   };
 
@@ -231,11 +226,6 @@ const UpdateNaturalPerson = () => {
         </button>
       </form>
 
-      {successMessage && (
-        <div className="success-message">{successMessage}</div>
-      )}
-
-      {errorMessage && <div className="error-message">{errorMessage}</div>}
     </div>
   );
 };
