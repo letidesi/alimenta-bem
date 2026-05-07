@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using AlimentaBem.Context;
+using AlimentaBem.Helpers;
 using AlimentaBem.Src.Modules.Donation.UseCases.ReadListByOrganization.DTO;
 using AlimentaBem.Src.Modules.Role.Enum;
 
@@ -7,6 +9,7 @@ namespace AlimentaBem.Src.Modules.Donation.UseCases.ReadListByOrganization;
 public class DonationReadListByOrganizationEndpoint : Endpoint<DonationReadListByOrganizationRequest, DonationReadListByOrganizationResponse>
 {
     public AlimentaBemContext _context { get; init; }
+    public Localizer _localizer { get; init; }
 
     public override void Configure()
     {
@@ -24,6 +27,9 @@ public class DonationReadListByOrganizationEndpoint : Endpoint<DonationReadListB
     {
         try
         {
+            var adminUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            await AdminOrganizationGuard.EnsureAccess(_context, adminUserId, req.organizationId, _localizer);
+
             var useCase = new DonationReadListByOrganizationUseCase(_context);
 
             var response = await useCase.exec(req.organizationId);

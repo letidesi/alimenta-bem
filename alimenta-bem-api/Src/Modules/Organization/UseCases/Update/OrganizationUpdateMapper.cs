@@ -14,6 +14,7 @@ public class OrganizationUpdateMapper : Mapper<OrganizationUpdateRequest, Organi
         name = req.name,
         type = EnumHelper.ToEnumOrNull<TypeOrganization>(req.type),
         description = req.description,
+        cnpj = string.IsNullOrWhiteSpace(req.cnpj) ? null : req.cnpj.Trim().Replace(".", "").Replace("/", "").Replace("-", ""),
     };
 
     public override OrganizationUpdateResponse FromEntity(Organization o) => new()
@@ -22,6 +23,7 @@ public class OrganizationUpdateMapper : Mapper<OrganizationUpdateRequest, Organi
         name = o.name,
         type = o.type?.ToString(),
         description = o.description,
+        cnpj = o.cnpj,
         createdAt = o.createdAt,
         updatedAt = o.updatedAt,
     };

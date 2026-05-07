@@ -13,7 +13,8 @@ namespace AlimentaBem.Src.Modules.Organization.UseCases.Create
         {
             name = req.name,
             type = EnumHelper.ToEnumOrNull<TypeOrganization>(req.type),
-            description = req.description
+            description = req.description,
+            cnpj = string.IsNullOrWhiteSpace(req.cnpj) ? null : req.cnpj.Trim().Replace(".", "").Replace("/", "").Replace("-", ""),
         };
 
         public override OrganizationCreateResponse FromEntity(Organization o) => new()
@@ -22,6 +23,7 @@ namespace AlimentaBem.Src.Modules.Organization.UseCases.Create
             name = o.name,
             type = o.type.ToString(),
             description = o.description,
+            cnpj = o.cnpj,
             createdAt = o.createdAt,
             updatedAt = o.updatedAt
         };

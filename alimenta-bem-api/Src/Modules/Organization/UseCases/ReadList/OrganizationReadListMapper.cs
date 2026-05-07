@@ -14,6 +14,7 @@ namespace AlimentaBem.Src.Modules.Organization.UseCases.ReadList
                 name = o.name,
                 type = o.type?.ToString(),
                 description = o.description,
+                cnpj = o.cnpj,
             }).ToList()
         };
     }

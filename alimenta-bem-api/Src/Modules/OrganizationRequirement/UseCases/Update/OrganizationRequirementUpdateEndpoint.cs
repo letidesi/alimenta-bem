@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AlimentaBem.Context;
 using AlimentaBem.Helpers;
 using AlimentaBem.Src.Modules.OrganizationRequirement.UseCases.Update.DTO;
@@ -21,6 +22,9 @@ public class OrganizationRequirementUpdateEndpoint : Endpoint<OrganizationRequir
     {
         try
         {
+            var adminUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            await AdminOrganizationGuard.EnsureAccess(_context, adminUserId, req.organizationId, _localizer);
+
             var useCase = new OrganizationRequirementUpdateUseCase(_context, _localizer);
 
             var entity = Map.ToEntity(req);

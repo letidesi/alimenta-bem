@@ -1,7 +1,9 @@
+using System.Security.Claims;
 using AlimentaBem.Context;
 using AlimentaBem.Helpers;
 using AlimentaBem.Src.Modules.NaturalPerson.UseCases.AdminReadList.DTO;
 using AlimentaBem.Src.Modules.Role.Enum;
+using AlimentaBem.Src.Modules.UserOrganization.Repository;
 
 namespace AlimentaBem.Src.Modules.NaturalPerson.UseCases.AdminReadList;
 
@@ -18,7 +20,7 @@ public class NaturalPersonAdminReadListEndpoint : EndpointWithoutRequest<Natural
         Summary(s =>
         {
             s.Summary = "Read all natural persons for admin";
-            s.Description = "Retrieve all donors with profile data and donation count";
+            s.Description = "Retrieve donors who donated to the admin's organizations";
         });
     }
 
@@ -26,9 +28,13 @@ public class NaturalPersonAdminReadListEndpoint : EndpointWithoutRequest<Natural
     {
         try
         {
+            var adminUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var userOrgData = new UserOrganizationData(_context);
+            var orgIds = await userOrgData.GetOrganizationIdsByUser(adminUserId);
+
             var useCase = new NaturalPersonAdminReadListUseCase(_context);
 
-            var response = await useCase.exec();
+            var response = await useCase.exec(orgIds);
 
             await SendAsync(response, cancellation: ct);
         }

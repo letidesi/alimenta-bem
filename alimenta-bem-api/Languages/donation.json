@@ -75,5 +75,12 @@
             "en-US": "Thank you for your donation. A small adjustment to the item or quantity may speed up receipt. To not delay your help, please choose another active organization.",
             "pt-BR": "Obrigado pela sua doação. Um pequeno ajuste de item ou quantidade pode acelerar o recebimento. Para não atrasar sua ajuda, escolha outra instituição ativa."
         }
+    },
+    {
+        "Key": "NoAccess",
+        "LocalizedValues": {
+            "en-US": "You do not have access to this organization.",
+            "pt-BR": "Você não tem acesso a esta instituição."
+        }
     }
 ]

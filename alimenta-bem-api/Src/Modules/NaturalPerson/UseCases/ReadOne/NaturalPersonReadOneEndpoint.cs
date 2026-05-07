@@ -31,6 +31,12 @@ public class NaturalPersonReadOneEndPoint : Endpoint<NaturalPersonReadOneRequest
 
             var readOneNaturalPerson = await naturalPersonReadOneUseCase.exec(naturalPerson.id);
 
+            if (readOneNaturalPerson is null)
+            {
+                await SendNotFoundAsync(ct);
+                return;
+            }
+
             var readOnedNaturalPerson = Map.FromEntity(readOneNaturalPerson);
 
             await SendAsync(readOnedNaturalPerson);

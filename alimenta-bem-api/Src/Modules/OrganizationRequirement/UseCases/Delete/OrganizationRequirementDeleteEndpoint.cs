@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AlimentaBem.Context;
 using AlimentaBem.Helpers;
 using AlimentaBem.Src.Modules.OrganizationRequirement.UseCases.Delete.DTO;
@@ -21,8 +22,9 @@ public class OrganizationRequirementDeleteEndpoint : Endpoint<OrganizationRequir
     {
         try
         {
+            var adminUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             var useCase = new OrganizationRequirementDeleteUseCase(_context, _localizer);
-            await useCase.exec(req.id);
+            await useCase.exec(req.id, adminUserId);
             await SendAsync(new OrganizationRequirementDeleteResponse { success = true });
         }
         catch (Exception e)

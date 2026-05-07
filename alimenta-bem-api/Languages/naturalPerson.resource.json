@@ -152,5 +152,12 @@
             "en-US": "You are not authorized to delete this bidder.",
             "pt-BR": "Você não possui autorização para deletar esse proponente."
         }
+    },
+    {
+        "Key": "NoAccess",
+        "LocalizedValues": {
+            "en-US": "You do not have access to this donor's data.",
+            "pt-BR": "Você não tem acesso aos dados deste doador."
+        }
     }
 ]

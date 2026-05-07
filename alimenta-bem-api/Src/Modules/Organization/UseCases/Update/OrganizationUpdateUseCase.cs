@@ -22,9 +22,19 @@ public class OrganizationUpdateUseCase
         if (existing is null)
             throw new Exception(_localizer["organization:NotFound"]);
 
+        if (!string.IsNullOrEmpty(organization.cnpj))
+        {
+            if (organization.cnpj.Length != 14)
+                throw new Exception(_localizer["organization:CnpjInvalid"]);
+
+            if (await _organizationData.CnpjExists(organization.cnpj, excludeId: organization.id))
+                throw new Exception(_localizer["organization:CnpjAlreadyExists"]);
+        }
+
         existing.name = organization.name;
         existing.type = organization.type;
         existing.description = organization.description;
+        existing.cnpj = organization.cnpj;
 
         return await _organizationData.Update(existing);
     }

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AlimentaBem.Context;
 using AlimentaBem.Helpers;
 using AlimentaBem.Src.Modules.Donation.UseCases.UpdateStatus.DTO;
@@ -26,6 +27,9 @@ public class DonationUpdateStatusEndpoint : Endpoint<DonationUpdateStatusRequest
     {
         try
         {
+            var adminUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            await AdminOrganizationGuard.EnsureAccess(_context, adminUserId, req.organizationId, _localizer);
+
             var useCase = new DonationUpdateStatusUseCase(_context, _localizer);
 
             var response = await useCase.exec(req);

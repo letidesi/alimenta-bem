@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AlimentaBem.Context;
 using AlimentaBem.Helpers;
 using AlimentaBem.Src.Modules.NaturalPerson.UseCases.AdminDelete.DTO;
@@ -26,6 +27,9 @@ public class NaturalPersonAdminDeleteEndpoint : Endpoint<NaturalPersonAdminDelet
     {
         try
         {
+            var adminUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            await AdminOrganizationGuard.EnsureDonorUserAccess(_context, adminUserId, req.userId, _localizer);
+
             var useCase = new NaturalPersonAdminDeleteUseCase(_context, _localizer);
 
             await useCase.exec(req.userId);

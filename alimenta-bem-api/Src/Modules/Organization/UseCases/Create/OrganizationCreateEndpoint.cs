@@ -1,4 +1,5 @@
-﻿using AlimentaBem.Context;
+﻿using System.Security.Claims;
+using AlimentaBem.Context;
 using AlimentaBem.Helpers;
 using AlimentaBem.Src.Modules.Organization.UseCases.Create.DTO;
 using AlimentaBem.Src.Modules.Role.Enum;
@@ -26,11 +27,13 @@ public class OrganizationEndPoint : Endpoint<OrganizationCreateRequest, Organiza
     {
         try
         {
+            var adminUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
             var organizationCreateUseCase = new OrganizationCreateUseCase(_context, _localizer);
 
             var organization = Map.ToEntity(req);
 
-            var createOrganization = await organizationCreateUseCase.exec(organization);
+            var createOrganization = await organizationCreateUseCase.exec(organization, adminUserId);
 
             var createdOrganization = Map.FromEntity(createOrganization);
 

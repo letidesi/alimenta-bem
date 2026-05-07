@@ -16,13 +16,9 @@ namespace AlimentaBem.Src.Modules.NaturalPerson.UseCases.ReadOne
             _localizer = localizer;
         }
 
-        public async Task<NaturalPerson> exec(Guid naturalPersonId)
+        public Task<NaturalPerson?> exec(Guid naturalPersonId)
         {
-            var naturalPerson = await _naturalPersonData.ReadNaturalPersonByUser(naturalPersonId);
-            if (naturalPerson is null)
-                throw new Exception(_localizer["naturalPerson:NotFoundNaturalPerson"]);
-
-            return naturalPerson;
+            return _naturalPersonData.ReadNaturalPersonByUser(naturalPersonId);
         }
     }
 }

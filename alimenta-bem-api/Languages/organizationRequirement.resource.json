@@ -19,5 +19,19 @@
             "en-US": "Unable to create the organization requirement.",
             "pt-BR": "Não foi possível criar a necessidade da organização."
         }
+    },
+    {
+        "Key": "NoAccess",
+        "LocalizedValues": {
+            "en-US": "You do not have access to this organization.",
+            "pt-BR": "Você não tem acesso a esta instituição."
+        }
+    },
+    {
+        "Key": "NotFound",
+        "LocalizedValues": {
+            "en-US": "Requirement not found.",
+            "pt-BR": "Necessidade não encontrada."
+        }
     }
 ]

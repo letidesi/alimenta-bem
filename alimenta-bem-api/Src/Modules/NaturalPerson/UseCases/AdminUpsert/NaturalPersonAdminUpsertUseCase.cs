@@ -13,6 +13,7 @@ namespace AlimentaBem.Src.Modules.NaturalPerson.UseCases.AdminUpsert
 
     public class NaturalPersonAdminUpsertUseCase
     {
+        private readonly AlimentaBemContext _context;
         private readonly Localizer _localizer;
         private readonly IUserData _userData;
         private readonly NaturalPersonUpdateUseCase _naturalPersonUpdateUseCase;
@@ -20,6 +21,7 @@ namespace AlimentaBem.Src.Modules.NaturalPerson.UseCases.AdminUpsert
 
         public NaturalPersonAdminUpsertUseCase(AlimentaBemContext context, Localizer localizer)
         {
+            _context = context;
             _localizer = localizer;
             _userData = new UserData(context);
             _naturalPersonUpdateUseCase = new NaturalPersonUpdateUseCase(context, localizer);
@@ -36,34 +38,46 @@ namespace AlimentaBem.Src.Modules.NaturalPerson.UseCases.AdminUpsert
 
             var user = await _userData.ReadOneByEmail(normalizedEmail);
 
-            if (user is null)
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                user = new User
+                if (user is null)
                 {
-                    name = normalizedName,
-                    email = normalizedEmail,
-                    passwordHash = FormatPassword.GenerateHash(password),
-                    roles = new List<Role>
+                    user = new User
                     {
-                        new Role { type = Enum.GetName(EnumRole.Citizen) }
-                    }
-                };
+                        name = normalizedName,
+                        email = normalizedEmail,
+                        passwordHash = FormatPassword.GenerateHash(password),
+                        roles = new List<Role>
+                        {
+                            new Role { type = Enum.GetName(EnumRole.Citizen) }
+                        }
+                    };
 
-                user = await _userData.Create(user);
+                    user = await _userData.Create(user);
+                }
+                else
+                {
+                    user.name = normalizedName;
+                    user.passwordHash = FormatPassword.GenerateHash(password);
+                    user = await _userData.Update(user);
+                }
+
+                naturalPerson.userId = user.id;
+                naturalPerson.user = user;
+                naturalPerson.emailUser = normalizedEmail;
+                naturalPerson.name = normalizedName;
+
+                var result = await _naturalPersonUpdateUseCase.exec(naturalPerson);
+
+                await transaction.CommitAsync();
+                return result;
             }
-            else
+            catch
             {
-                user.name = normalizedName;
-                user.passwordHash = FormatPassword.GenerateHash(password);
-                user = await _userData.Update(user);
+                await transaction.RollbackAsync();
+                throw;
             }
-
-            naturalPerson.userId = user.id;
-            naturalPerson.user = user;
-            naturalPerson.emailUser = normalizedEmail;
-            naturalPerson.name = normalizedName;
-
-            return await _naturalPersonUpdateUseCase.exec(naturalPerson);
         }
     }
 }

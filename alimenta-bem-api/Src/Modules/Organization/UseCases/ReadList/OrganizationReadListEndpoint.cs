@@ -1,6 +1,9 @@
-﻿using AlimentaBem.Context;
+﻿using System.Security.Claims;
+using AlimentaBem.Context;
 using AlimentaBem.Helpers;
 using AlimentaBem.Src.Modules.Organization.UseCases.ReadList.DTO;
+using AlimentaBem.Src.Modules.Role.Enum;
+using AlimentaBem.Src.Modules.UserOrganization.Repository;
 
 namespace AlimentaBem.Src.Modules.Organization.UseCases.ReadList;
 
@@ -16,7 +19,7 @@ public class organizationReadListEndpoint : EndpointWithoutRequest<OrganizationR
         Summary(s =>
         {
             s.Summary = "Get a list of organizations";
-            s.Description = "Retrieve a list of organizations from the platform";
+            s.Description = "Admins receive only their own organizations; public callers receive all.";
         });
         AllowAnonymous();
     }
@@ -25,9 +28,19 @@ public class organizationReadListEndpoint : EndpointWithoutRequest<OrganizationR
     {
         try
         {
-            var organizationReadListUseCase = new OrganizationReadListUseCase(_context, _localizer);
+            var useCase = new OrganizationReadListUseCase(_context, _localizer);
 
-            var organizations = await organizationReadListUseCase.exec();
+            IEnumerable<Guid>? filterIds = null;
+
+            var isAdmin = User.IsInRole(EnumRole.Admin.ToString());
+            if (isAdmin)
+            {
+                var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                var userOrgData = new UserOrganizationData(_context);
+                filterIds = await userOrgData.GetOrganizationIdsByUser(userId);
+            }
+
+            var organizations = await useCase.exec(filterIds);
 
             var response = Map.FromEntity(organizations);
 
