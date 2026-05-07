@@ -4,6 +4,11 @@ export const ROLE_OPTIONS = [
   { value: "Citizen",   label: "Citizen" },
 ];
 
+export const ROLE_OPTIONS_ADMIN = [
+  { value: "Admin",   label: "Admin" },
+  { value: "Citizen", label: "Citizen" },
+];
+
 export const ROLE_OPTIONS_ASSIGN = [
   { value: "Admin",     label: "Admin" },
   { value: "Developer", label: "Developer" },
@@ -20,6 +25,7 @@ export const ORGANIZATION_TYPE_OPTIONS = [
   { value: "Igreja", label: "Igreja" },
   { value: "ONG",    label: "ONG" },
   { value: "Escola", label: "Escola" },
+  { value: "Outros", label: "Outros" },
 ];
 
 export const PRIORITY_OPTIONS = [

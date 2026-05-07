@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Button, Card, Empty, Modal, Select, Space, Spin, Tag, message } from "antd";
+import { Button, Card, Empty, Form, Input, Modal, Select, Space, Spin, Tag, message } from "antd";
 import { getAuthHeaders, getJsonAuthHeaders } from "../../Utils/auth";
-import { ROLE_OPTIONS } from "../../Utils/constants";
+import { ROLE_OPTIONS_ADMIN } from "../../Utils/constants";
 
-export default function UsersModal({ open, onClose }) {
+export default function UsersModal({ open, onClose, organizations = [] }) {
   const [usersList, setUsersList] = useState([]);
   const [pendingRoles, setPendingRoles] = useState({});
   const [loading, setLoading] = useState(false);
   const [savingUserId, setSavingUserId] = useState(null);
+
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [addSaving, setAddSaving] = useState(false);
+  const [addForm] = Form.useForm();
 
   useEffect(() => {
     if (open) loadUsers();
@@ -52,6 +56,37 @@ export default function UsersModal({ open, onClose }) {
     }
   };
 
+  const handleAddUser = async () => {
+    try {
+      const values = await addForm.validateFields();
+      setAddSaving(true);
+
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/user/admin`,
+        {
+          name: values.name.trim(),
+          email: values.email.trim(),
+          password: values.password,
+          role: values.role,
+          organizationIds: values.organizationIds ?? [],
+        },
+        { headers: getJsonAuthHeaders() }
+      );
+
+      message.success("Usuário criado e vinculado à instituição com sucesso.");
+      addForm.resetFields();
+      setAddModalOpen(false);
+      await loadUsers();
+    } catch (error) {
+      if (!error?.errorFields) {
+        const msg = error?.response?.data?.message || "Não foi possível criar o usuário.";
+        message.error(msg);
+      }
+    } finally {
+      setAddSaving(false);
+    }
+  };
+
   const roleColor = (role) => {
     if (role === "Admin") return "red";
     if (role === "Developer") return "purple";
@@ -60,50 +95,110 @@ export default function UsersModal({ open, onClose }) {
   };
 
   return (
-    <Modal
-      title="Gerenciar usuários e cargos"
-      open={open}
-      onCancel={onClose}
-      footer={[
-        <Button key="close" onClick={onClose}>Fechar</Button>,
-      ]}
-      width={780}
-    >
-      {loading ? (
-        <div className="admin-dashboard-loading"><Spin size="large" /></div>
-      ) : usersList.length === 0 ? (
-        <Empty description="Nenhum usuário encontrado." />
-      ) : (
-        <div className="admin-user-role-list">
-          {usersList.map((user) => (
-            <Card key={user.userId} size="small" className="admin-user-role-card">
-              <div className="admin-user-role-row">
-                <div>
-                  <strong>{user.name}</strong>
-                  <p>{user.email}</p>
-                  <Tag color={roleColor(user.role)}>{user.role || "Sem cargo"}</Tag>
+    <>
+      <Modal
+        title="Gerenciar usuários e cargos"
+        open={open}
+        onCancel={onClose}
+        footer={[
+          <Button key="add" type="primary" onClick={() => setAddModalOpen(true)}>
+            Adicionar usuário
+          </Button>,
+          <Button key="close" onClick={onClose}>Fechar</Button>,
+        ]}
+        width={780}
+      >
+        {loading ? (
+          <div className="admin-dashboard-loading"><Spin size="large" /></div>
+        ) : usersList.length === 0 ? (
+          <Empty description="Nenhum usuário encontrado." />
+        ) : (
+          <div className="admin-user-role-list">
+            {usersList.map((user) => (
+              <Card key={user.userId} size="small" className="admin-user-role-card">
+                <div className="admin-user-role-row">
+                  <div>
+                    <strong>{user.name}</strong>
+                    <p>{user.email}</p>
+                    <Tag color={roleColor(user.role)}>{user.role || "Sem cargo"}</Tag>
+                  </div>
+                  <Space>
+                    <Select
+                      value={pendingRoles[user.userId] ?? user.role ?? undefined}
+                      placeholder="Sem cargo"
+                      options={ROLE_OPTIONS_ADMIN}
+                      onChange={(role) => onRoleChange(user.userId, role)}
+                      style={{ minWidth: 150 }}
+                    />
+                    <Button
+                      type="primary"
+                      loading={savingUserId === user.userId}
+                      onClick={() => handleSaveRole(user)}
+                    >
+                      Salvar cargo
+                    </Button>
+                  </Space>
                 </div>
-                <Space>
-                  <Select
-                    value={pendingRoles[user.userId] ?? user.role ?? undefined}
-                    placeholder="Sem cargo"
-                    options={ROLE_OPTIONS}
-                    onChange={(role) => onRoleChange(user.userId, role)}
-                    style={{ minWidth: 150 }}
-                  />
-                  <Button
-                    type="primary"
-                    loading={savingUserId === user.userId}
-                    onClick={() => handleSaveRole(user)}
-                  >
-                    Salvar cargo
-                  </Button>
-                </Space>
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
-    </Modal>
+              </Card>
+            ))}
+          </div>
+        )}
+      </Modal>
+
+      <Modal
+        title="Adicionar usuário"
+        open={addModalOpen}
+        onCancel={() => { setAddModalOpen(false); addForm.resetFields(); }}
+        onOk={handleAddUser}
+        confirmLoading={addSaving}
+        okText="Criar e vincular"
+        cancelText="Cancelar"
+      >
+        <Form form={addForm} layout="vertical">
+          <Form.Item label="Nome" name="name" rules={[{ required: true, message: "Informe o nome." }]}>
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            label="E-mail"
+            name="email"
+            rules={[
+              { required: true, message: "Informe o e-mail." },
+              { type: "email", message: "E-mail inválido." },
+            ]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            label="Senha"
+            name="password"
+            rules={[{ required: true, message: "Informe a senha." }, { min: 6, message: "Mínimo 6 caracteres." }]}
+          >
+            <Input.Password />
+          </Form.Item>
+
+          <Form.Item
+            label="Cargo"
+            name="role"
+            rules={[{ required: true, message: "Selecione um cargo." }]}
+          >
+            <Select options={ROLE_OPTIONS_ADMIN} placeholder="Selecione" />
+          </Form.Item>
+
+          <Form.Item
+            label="Instituições"
+            name="organizationIds"
+            rules={[{ required: true, message: "Selecione ao menos uma instituição." }]}
+          >
+            <Select
+              mode="multiple"
+              placeholder="Selecione as instituições"
+              options={organizations.map((o) => ({ value: o.id, label: o.name }))}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </>
   );
 }

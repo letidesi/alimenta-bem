@@ -95,7 +95,7 @@ export default function AdminHome() {
     setLoading(true);
     try {
       const [organizationResponse, donorResponse] = await Promise.all([
-        axios.get(`${import.meta.env.VITE_API_BASE_URL}/organizations`),
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/organizations`, { headers: getAuthHeaders() }),
         axios.get(`${import.meta.env.VITE_API_BASE_URL}/natural-persons`, { headers: getAuthHeaders() }),
       ]);
 
@@ -414,6 +414,7 @@ export default function AdminHome() {
       <UsersModal
         open={usersModalOpen}
         onClose={() => setUsersModalOpen(false)}
+        organizations={organizations}
       />
       <DonorsModal
         open={donorsModalOpen}
