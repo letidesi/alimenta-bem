@@ -3,14 +3,14 @@
         "Key": "ItemNameRequired",
         "LocalizedValues": {
             "en-US": "The parameter \"itemName\" is required.",
-            "pt-BR": "O parâmetro \"itemName\" é obrigatório."
+            "pt-BR": "O nome do item é obrigatório."
         }
     },
     {
         "Key": "AmountDonatedRequired",
         "LocalizedValues": {
             "en-US": "The parameter \"amountDonated\" is required.",
-            "pt-BR": "O parâmetro \"amountDonated\" é obrigatório."
+            "pt-BR": "O valor doado é obrigatório."
         }
     },
     {

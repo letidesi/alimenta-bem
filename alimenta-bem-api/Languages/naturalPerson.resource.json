@@ -10,77 +10,77 @@
         "Key": "nameRequired",
         "LocalizedValues": {
             "en-US": "The parameter \"name\" is required.",
-            "pt-BR": "O parâmetro \"name\" é obrigatório."
+            "pt-BR": "O nome é obrigatório."
         }
     },
     {
         "Key": "LastNameRequired",
         "LocalizedValues": {
             "en-US": "The parameter \"LastName\" is required.",
-            "pt-BR": "O parâmetro \"LastName\" é obrigatório."
+            "pt-BR": "O sobrenome é obrigatório."
         }
     },
     {
         "Key": "CPFRequired",
         "LocalizedValues": {
             "en-US": "The parameter \"CPF\" is required.",
-            "pt-BR": "O parâmetro \"CPF\" é obrigatório."
+            "pt-BR": "O CPF é obrigatório."
         }
     },
     {
         "Key": "CPFInvalid",
         "LocalizedValues": {
             "en-US": "Invalid \"CPF\" format.",
-            "pt-BR": "Formato de \"CPF\" inválido."
+            "pt-BR": "Formato de CPF inválido."
         }
     },
     {
         "Key": "CPFSizeRequired",
         "LocalizedValues": {
             "en-US": "The parameter \"CPF\" must have 11 characters.",
-            "pt-BR": "O parâmetro \"CPF\" deve ter 11 caracteres."
+            "pt-BR": "O CPF deve ter 11 caracteres."
         }
     },
     {
         "Key": "RGRequired",
         "LocalizedValues": {
             "en-US": "The parameter \"RG\" is required.",
-            "pt-BR": "O parâmetro \"RG\" é obrigatório."
+            "pt-BR": "O RG é obrigatório."
         }
     },
     {
         "Key": "RGSizeMin",
         "LocalizedValues": {
             "en-US": "The parameter \"RG\" must have at least 5 characters.",
-            "pt-BR": "O parâmetro \"RG\" deve ter pelo menos 5 caracteres."
+            "pt-BR": "O RG deve ter pelo menos 5 caracteres."
         }
     },
     {
         "Key": "RGSizeMax",
         "LocalizedValues": {
             "en-US": "The parameter \"RG\" must have maximum 12 characters.",
-            "pt-BR": "O parâmetro \"RG\" deve ter no máximo 12 caracteres."
+            "pt-BR": "O RG deve ter no máximo 12 caracteres."
         }
     },
     {
         "Key": "AgeRequired",
         "LocalizedValues": {
             "en-US": "The parameter \"Age\" is required.",
-            "pt-BR": "O parâmetro \"Age\" é obrigatório."
+            "pt-BR": "A idade é obrigatória."
         }
     },
     {
         "Key": "BirthdayDateRequired",
         "LocalizedValues": {
             "en-US": "The parameter \"BirthdayDate\" is required.",
-            "pt-BR": "O parâmetro \"BirthdayDate\" é obrigatório."
+            "pt-BR": "A data de nascimento é obrigatória."
         }
     },
     {
         "Key": "BirthdayDateInvalid",
         "LocalizedValues": {
             "en-US": "The parameter \"BirthdayDate\" is invalid.",
-            "pt-BR": "O parâmetro \"BirthdayDate\" não é válido."
+            "pt-BR": "A data de nascimento não é válida."
         }
     },
     {
@@ -115,14 +115,14 @@
         "Key": "CPFAlreadyUse",
         "LocalizedValues": {
             "en-US": "This \"CPF\" is already registered.",
-            "pt-BR": "Este \"CPF\" já está cadastrado."
+            "pt-BR": "Este CPF já está cadastrado."
         }
     },
     {
         "Key": "RGAlreadyUse",
         "LocalizedValues": {
             "en-US": "This \"RG\" is already registered.",
-            "pt-BR": "Este \"RG\" já está cadastrado."
+            "pt-BR": "Este RG já está cadastrado."
         }
     },
     {
@@ -136,14 +136,14 @@
         "Key": "RGIdentical",
         "LocalizedValues": {
             "en-US": "The \"RG\" number provided is identical to the \"RG\" previously registered. Please provide a different \"RG\" number to complete the update.",
-            "pt-BR": "O número de \"RG\" fornecido é idêntico ao \"RG\" anteriormente registrado. Por favor, forneça um número de \"RG\" diferente para concluir a atualização."
+            "pt-BR": "O número de RG fornecido é idêntico ao RG anteriormente registrado. Por favor, forneça um número de RG diferente para concluir a atualização."
         }
     },
     {
         "Key": "CPFIdentical",
         "LocalizedValues": {
             "en-US": "The \"CPF\" number provided is identical to the \"CPF\" previously registered. Please provide a different \"CPF\" number to complete the update.",
-            "pt-BR": "O número de \"CPF\" fornecido é idêntico ao \"CPF\" anteriormente registrado. Por favor, forneça um número de \"CPF\" diferente para concluir a atualização."
+            "pt-BR": "O número de CPF fornecido é idêntico ao CPF anteriormente registrado. Por favor, forneça um número de CPF diferente para concluir a atualização."
         }
     },
     {

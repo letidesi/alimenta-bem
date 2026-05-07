@@ -3,14 +3,14 @@
         "Key": "QuantityRequired",
         "LocalizedValues": {
             "en-US": "The parameter \"quantity\" is required.",
-            "pt-BR": "O parâmetro \"quantity\" é obrigatório."
+            "pt-BR": "A quantidade é obrigatória."
         }
     },
     {
         "Key": "ItemNameRequired",
         "LocalizedValues": {
             "en-US": "The parameter \"ItemName\" is required.",
-            "pt-BR": "O parâmetro \"ItemName\" é obrigatório."
+            "pt-BR": "O nome do item é obrigatório."
         }
     },
     {

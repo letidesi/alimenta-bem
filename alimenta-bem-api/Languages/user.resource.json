@@ -10,21 +10,21 @@
         "Key": "PasswordRequired",
         "LocalizedValues": {
             "en-US": "The parameter \"password\" is required.",
-            "pt-BR": "O parâmetro \"password\" é obrigatório."
+            "pt-BR": "A senha é obrigatória."
         }
     },
     {
         "Key": "PasswordShort",
         "LocalizedValues": {
             "en-US": "The parameter \"password\" is too short.",
-            "pt-BR": "O parâmetro \"password\" está muito curta."
+            "pt-BR": "A senha está muito curta."
         }
     },
     {
         "Key": "PasswordLong",
         "LocalizedValues": {
             "en-US": "The parameter \"password\" is too long.",
-            "pt-BR": "O parâmetro \"password\" está muito grande."
+            "pt-BR": "A senha está muito longa."
         }
     },
     {
