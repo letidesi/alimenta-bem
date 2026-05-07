@@ -103,7 +103,7 @@ public partial class Program
         });
 
         // Outros serviços
-        DependencyInjectionConfig.Register_Services(builder.Services);
+        DependencyInjectionConfig.Register_Services(builder.Services, builder.Configuration);
         CultureInfoConfig.Configure(builder.Services);
 
         builder.Services.AddFastEndpoints();
