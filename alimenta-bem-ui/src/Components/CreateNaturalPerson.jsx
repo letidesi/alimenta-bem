@@ -6,12 +6,15 @@ import '../Css/Style.css';
 import { validateEmailField } from '../Utils/validation';
 import PasswordInput from './PasswordInput';
 
+const EMPTY_FORM = {
+    emailUser: '', password: '', firstName: '', lastName: '',
+    socialName: '', age: '', birthdayDate: '', gender: '', skinColor: '', isPcd: false
+};
+
 const CreateNaturalPerson = () => {
-    const [personData, setPersonData] = useState({
-        emailUser: '', password: '', firstName: '', lastName: '',
-        socialName: '', age: '', birthdayDate: '', gender: '', skinColor: '', isPcd: false
-    });
+    const [personData, setPersonData] = useState(EMPTY_FORM);
     const [emailError, setEmailError] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const validateEmail = (value) => validateEmailField(value, setEmailError);
 
@@ -23,6 +26,7 @@ const CreateNaturalPerson = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!validateEmail(personData.emailUser)) return;
+        setLoading(true);
         try {
             const token = localStorage.getItem('accessToken');
             const payload = {
@@ -40,10 +44,13 @@ const CreateNaturalPerson = () => {
                 headers: { Authorization: `Bearer ${token}` },
             });
             message.success('Doador criado com sucesso!');
+            setPersonData(EMPTY_FORM);
         } catch (error) {
             const apiErrors = error?.response?.data?.errors;
             const firstError = Array.isArray(apiErrors) ? apiErrors[0]?.reason : apiErrors?.GeneralErrors?.[0];
             message.error(firstError || 'Ocorreu um erro ao criar o doador.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -113,7 +120,7 @@ const CreateNaturalPerson = () => {
                     <Switch id="pcd-switch" checked={personData.isPcd} onChange={(checked) => setPersonData({ ...personData, isPcd: checked })} className="pcd-switch" />
                 </div>
             </div>
-            <button type="submit" className="submit-btn">Enviar</button>
+            <button type="submit" className="submit-btn" disabled={loading}>{loading ? 'Enviando...' : 'Enviar'}</button>
         </form>
     );
 };

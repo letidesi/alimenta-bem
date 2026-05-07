@@ -14,6 +14,7 @@ const CreateDonation = () => {
   const [donationsHistory, setDonationsHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [profileError, setProfileError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     axios.get(`${import.meta.env.VITE_API_BASE_URL}/organizations`)
@@ -100,12 +101,17 @@ const CreateDonation = () => {
       message.error("Complete seu perfil para realizar doações.");
       return;
     }
+    setLoading(true);
     try {
       await axios.post(`${import.meta.env.VITE_API_BASE_URL}/donation`, donationData, { headers: getJsonAuthHeaders() });
       message.success("Doação realizada com sucesso!");
+      setDonationData((prev) => ({ ...prev, organizationId: "", itemName: "", amountDonated: 0 }));
+      setOrganizationRequirements([]);
       await loadDonationHistory(donationData.naturalPersonId);
     } catch {
       message.error("Ocorreu um erro ao realizar a doação.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -159,7 +165,7 @@ const CreateDonation = () => {
           <label>Quantidade doada</label>
           <input type="number" name="amountDonated" value={donationData.amountDonated} onChange={handleChange} min={1} required />
         </div>
-        <button type="submit" className="submit-btn">Enviar</button>
+        <button type="submit" className="submit-btn" disabled={loading}>{loading ? 'Enviando...' : 'Enviar'}</button>
       </form>
 
       <div className="donation-history-box">

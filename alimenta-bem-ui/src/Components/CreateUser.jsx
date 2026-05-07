@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { message } from 'antd';
+import { useNavigate } from 'react-router-dom';
 import '../Css/Style.css';
 import { validateEmailField } from '../Utils/validation';
 import PasswordInput from './PasswordInput';
 
+const EMPTY_FORM = { name: '', email: '', password: '' };
+
 const CreateUser = () => {
-    const [userData, setUserData] = useState({ name: '', email: '', password: '' });
+    const [userData, setUserData] = useState(EMPTY_FORM);
     const [emailError, setEmailError] = useState('');
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     const validateEmail = (value) => validateEmailField(value, setEmailError);
 
@@ -16,14 +21,19 @@ const CreateUser = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!validateEmail(userData.email)) return;
+        setLoading(true);
         try {
             await axios.post(`${import.meta.env.VITE_API_BASE_URL}/user`, userData);
             message.success('Usuário criado com sucesso!');
+            setUserData(EMPTY_FORM);
+            setTimeout(() => navigate('/login'), 1500);
         } catch (error) {
             const msg = error?.response?.data?.errors?.[0]?.reason
                 || error?.response?.data?.message
                 || 'Ocorreu um erro ao criar o usuário.';
             message.error(msg);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -50,7 +60,7 @@ const CreateUser = () => {
                 <label>Senha</label>
                 <PasswordInput name="password" value={userData.password} onChange={handleChange} required />
             </div>
-            <button type="submit" className="submit-btn">Enviar</button>
+            <button type="submit" className="submit-btn" disabled={loading}>{loading ? 'Enviando...' : 'Enviar'}</button>
         </form>
     );
 };

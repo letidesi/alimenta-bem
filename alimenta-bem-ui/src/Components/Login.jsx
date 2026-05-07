@@ -14,6 +14,7 @@ function getHighestPriorityRole(roles) {
 const Login = () => {
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [emailError, setEmailError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const validateEmail = (value) => validateEmailField(value, setEmailError);
@@ -25,7 +26,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateEmail(loginData.email)) return;
-
+    setLoading(true);
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/user/authenticate`, loginData);
       const { accesstoken, refreshtoken } = response.data;
@@ -48,6 +49,8 @@ const Login = () => {
       else navigate("/login");
     } catch {
       message.error("E-mail ou senha inválidos.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -70,7 +73,7 @@ const Login = () => {
           <label>Senha</label>
           <PasswordInput name="password" value={loginData.password} onChange={handleChange} required />
         </div>
-        <button type="submit" className="submit-btn">Entrar</button>
+        <button type="submit" className="submit-btn" disabled={loading}>{loading ? 'Entrando...' : 'Entrar'}</button>
         <div className="form-group-register">
           <Link to="/create-user" className="submit-btn-register">Registra-se</Link>
           <Link to="/forgot-password" className="submit-btn-register">Esqueceu a senha</Link>

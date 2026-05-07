@@ -4,9 +4,12 @@ import { message } from "antd";
 import "../Css/Style.css";
 import { getAuthHeaders } from "../Utils/auth";
 
+const EMPTY_FORM = { organizationId: "", itemName: "", quantity: 0, type: "" };
+
 const CreateOrganizationRequirement = () => {
-  const [requirementData, setRequirementData] = useState({ organizationId: "", itemName: "", quantity: 0, type: "" });
+  const [requirementData, setRequirementData] = useState(EMPTY_FORM);
   const [institutions, setInstitutions] = useState([]);
+  const [loading, setLoading] = useState(false);
   const priorityOptions = ["Alta", "Media", "Baixa"];
   const token = localStorage.getItem("accessToken");
 
@@ -21,6 +24,7 @@ const CreateOrganizationRequirement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/organization-requirement`,
@@ -28,9 +32,12 @@ const CreateOrganizationRequirement = () => {
         { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
       );
       message.success("Item necessário criado com sucesso!");
+      setRequirementData(EMPTY_FORM);
     } catch (error) {
       const msg = error?.response?.data?.errors?.[0]?.reason || "Ocorreu um erro ao criar o item.";
       message.error(msg);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -63,7 +70,7 @@ const CreateOrganizationRequirement = () => {
           ))}
         </select>
       </div>
-      <button type="submit" className="submit-btn">Enviar</button>
+      <button type="submit" className="submit-btn" disabled={loading}>{loading ? 'Enviando...' : 'Enviar'}</button>
     </form>
   );
 };
