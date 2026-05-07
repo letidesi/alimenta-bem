@@ -27,7 +27,7 @@ namespace AlimentaBem.Src.Modules.User.UseCases.AdminCreate
             _isValidEmailFunction = new isValidEmailFunction();
         }
 
-        public async Task<User> exec(string name, string email, string password, string role, Guid adminUserId, List<Guid> organizationIds)
+        public async Task<User> exec(string name, string email, string password, string role, Guid adminUserId, List<Guid> organizationIds, bool isDeveloper = false)
         {
             if (!_isValidEmailFunction.IsValidEmail(email))
                 throw new Exception(_localizer["data:EmailInvalid"]);
@@ -42,11 +42,13 @@ namespace AlimentaBem.Src.Modules.User.UseCases.AdminCreate
             if (existing is not null)
                 throw new Exception(_localizer["user:UserSameEmail"]);
 
-            var adminOrgIds = await _userOrganizationData.GetOrganizationIdsByUser(adminUserId);
-
-            foreach (var orgId in organizationIds)
-                if (!adminOrgIds.Contains(orgId))
-                    throw new Exception(_localizer["userOrganization:NoAccess"]);
+            if (!isDeveloper)
+            {
+                var adminOrgIds = await _userOrganizationData.GetOrganizationIdsByUser(adminUserId);
+                foreach (var orgId in organizationIds)
+                    if (!adminOrgIds.Contains(orgId))
+                        throw new Exception(_localizer["userOrganization:NoAccess"]);
+            }
 
             await using var transaction = await _context.Database.BeginTransactionAsync();
             try

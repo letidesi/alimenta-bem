@@ -28,8 +28,9 @@ public class UserAdminCreateEndpoint : Endpoint<UserAdminCreateRequest, UserAdmi
         try
         {
             var adminUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var isDeveloper = User.IsInRole(EnumRole.Developer.ToString());
             var useCase = new UserAdminCreateUseCase(_context, _localizer);
-            var user = await useCase.exec(req.name, req.email, req.password, req.role, adminUserId, req.organizationIds);
+            var user = await useCase.exec(req.name, req.email, req.password, req.role, adminUserId, req.organizationIds, isDeveloper);
 
             await SendAsync(new UserAdminCreateResponse
             {
