@@ -1,17 +1,23 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Button, Card, Empty, Select, Space, Spin, Tag, message } from "antd";
+import { Button, Card, Empty, Form, Input, Modal, Select, Space, Spin, Tag, message } from "antd";
 import { getAuthHeaders, getJsonAuthHeaders } from "../Utils/auth";
-import { ROLE_OPTIONS_ASSIGN } from "../Utils/constants";
+import { ROLE_OPTIONS, ROLE_OPTIONS_ASSIGN } from "../Utils/constants";
 
 export default function DeveloperHome() {
   const [usersList, setUsersList] = useState([]);
+  const [organizations, setOrganizations] = useState([]);
   const [pendingRoles, setPendingRoles] = useState({});
   const [loading, setLoading] = useState(false);
   const [savingUserId, setSavingUserId] = useState(null);
 
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [addSaving, setAddSaving] = useState(false);
+  const [addForm] = Form.useForm();
+
   useEffect(() => {
     loadUsers();
+    loadOrganizations();
   }, []);
 
   const loadUsers = async () => {
@@ -27,6 +33,17 @@ export default function DeveloperHome() {
       message.error("Não foi possível carregar os usuários.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadOrganizations = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/organizations`, {
+        headers: getAuthHeaders(),
+      });
+      setOrganizations(response.data?.organizations || []);
+    } catch {
+      setOrganizations([]);
     }
   };
 
@@ -52,6 +69,35 @@ export default function DeveloperHome() {
     }
   };
 
+  const handleAddUser = async () => {
+    try {
+      const values = await addForm.validateFields();
+      setAddSaving(true);
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/user/admin`,
+        {
+          name: values.name.trim(),
+          email: values.email.trim(),
+          password: values.password,
+          role: values.role,
+          organizationIds: values.organizationIds ?? [],
+        },
+        { headers: getJsonAuthHeaders() }
+      );
+      message.success("Usuário criado com sucesso.");
+      addForm.resetFields();
+      setAddModalOpen(false);
+      await loadUsers();
+    } catch (error) {
+      if (!error?.errorFields) {
+        const msg = error?.response?.data?.errors?.[0]?.reason || "Não foi possível criar o usuário.";
+        message.error(msg);
+      }
+    } finally {
+      setAddSaving(false);
+    }
+  };
+
   const roleColor = (role) => {
     if (role === "Admin") return "red";
     if (role === "Developer") return "purple";
@@ -61,8 +107,16 @@ export default function DeveloperHome() {
 
   return (
     <div>
-      <h2>Gerenciar Cargos</h2>
-      <p>Libere ou altere o cargo dos usuários cadastrados no sistema.</p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <div>
+          <h2>Gerenciar Cargos</h2>
+          <p>Libere ou altere o cargo dos usuários cadastrados no sistema.</p>
+        </div>
+        <Button type="primary" onClick={() => setAddModalOpen(true)}>
+          Adicionar usuário
+        </Button>
+      </div>
+
       {loading ? (
         <div className="admin-dashboard-loading">
           <Spin size="large" />
@@ -100,6 +154,57 @@ export default function DeveloperHome() {
           ))}
         </div>
       )}
+
+      <Modal
+        title="Adicionar usuário"
+        open={addModalOpen}
+        onCancel={() => { setAddModalOpen(false); addForm.resetFields(); }}
+        onOk={handleAddUser}
+        confirmLoading={addSaving}
+        okText="Criar"
+        cancelText="Cancelar"
+      >
+        <Form form={addForm} layout="vertical">
+          <Form.Item label="Nome" name="name" rules={[{ required: true, message: "Informe o nome." }]}>
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            label="E-mail"
+            name="email"
+            rules={[
+              { required: true, message: "Informe o e-mail." },
+              { type: "email", message: "E-mail inválido." },
+            ]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            label="Senha"
+            name="password"
+            rules={[{ required: true, message: "Informe a senha." }, { min: 6, message: "Mínimo 6 caracteres." }]}
+          >
+            <Input.Password />
+          </Form.Item>
+
+          <Form.Item
+            label="Cargo"
+            name="role"
+            rules={[{ required: true, message: "Selecione um cargo." }]}
+          >
+            <Select options={ROLE_OPTIONS} placeholder="Selecione" />
+          </Form.Item>
+
+          <Form.Item label="Instituições" name="organizationIds">
+            <Select
+              mode="multiple"
+              placeholder="Selecione as instituições (opcional)"
+              options={organizations.map((o) => ({ value: o.id, label: o.name }))}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 }
