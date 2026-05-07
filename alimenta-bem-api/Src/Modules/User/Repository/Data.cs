@@ -110,4 +110,17 @@ public class UserData : IUserData
 
         return user;
     }
+
+    public async Task<bool> Delete(Guid userId)
+    {
+        var user = await _context.Users
+            .Where(u => u.id == userId && u.deletedAt == null)
+            .FirstOrDefaultAsync();
+
+        if (user is null) return false;
+
+        user.deletedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return true;
+    }
 }

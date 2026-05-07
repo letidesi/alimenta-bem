@@ -68,5 +68,19 @@
             "en-US": "Invalid username or password.",
             "pt-BR": "Nome de usuário ou senha inválido."
         }
+    },
+    {
+        "Key": "CannotDeleteSelf",
+        "LocalizedValues": {
+            "en-US": "You cannot delete your own account.",
+            "pt-BR": "Você não pode excluir sua própria conta."
+        }
+    },
+    {
+        "Key": "NoAccess",
+        "LocalizedValues": {
+            "en-US": "You do not have permission to delete this user.",
+            "pt-BR": "Você não tem permissão para excluir este usuário."
+        }
     }
 ]

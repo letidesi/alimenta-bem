@@ -9,4 +9,5 @@ public interface IUserData
     Task<User?> UpdateRole(Guid userId, string roleType);
     Task<User?> ReadOneByEmail(string email);
     Task<User?> ReadOne(Guid id);
+    Task<bool> Delete(Guid userId);
 }
