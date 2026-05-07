@@ -1,0 +1,16 @@
+[
+    {
+        "Key": "NoAccess",
+        "LocalizedValues": {
+            "en-US": "You do not have access to this organization.",
+            "pt-BR": "Você não tem acesso a esta instituição."
+        }
+    },
+    {
+        "Key": "AlreadyLinked",
+        "LocalizedValues": {
+            "en-US": "This user is already linked to this organization.",
+            "pt-BR": "Este usuário já está vinculado a esta instituição."
+        }
+    }
+]
