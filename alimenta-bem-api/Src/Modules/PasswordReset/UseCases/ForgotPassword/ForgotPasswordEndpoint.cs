@@ -62,7 +62,10 @@ public class ForgotPasswordEndpoint : Endpoint<ForgotPasswordRequest>
             var resetLink = $"{frontendUrl}/reset-password?token={token}";
 
             var fromEmail = _configuration["Resend:FromEmail"] ?? "onboarding@resend.dev";
-            var isDev = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("RESEND_API_KEY"));
+            var resendKey = Environment.GetEnvironmentVariable("RESEND_API_KEY");
+            var isDev = string.IsNullOrEmpty(resendKey);
+
+            Console.WriteLine($"[RESET] isDev={isDev} resendKey={(isDev ? "empty" : "set")} to={user.email}");
 
             if (isDev)
             {
