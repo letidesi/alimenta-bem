@@ -36,7 +36,10 @@ const CreateUser = () => {
             await axios.post(`${URL}/user`, userData);
             setSuccessMessage('Usuário criado com sucesso!');
         } catch (error) {
-            setErrorMessage('Ocorreu um erro ao criar o usuário.');
+            const msg = error?.response?.data?.errors?.[0]?.reason
+                || error?.response?.data?.message
+                || 'Ocorreu um erro ao criar o usuário.';
+            setErrorMessage(msg);
         }
     };
 

@@ -65,8 +65,13 @@ const CreateDonation = () => {
         setLoggedDonorName(donorName);
         await loadDonationHistory(donorId);
       } catch (error) {
-        setErrorMessage("Não foi possível carregar o perfil do doador logado.");
-        setLoggedDonorName("Não identificado");
+        if (error?.response?.status === 404) {
+          setErrorMessage("Complete seu perfil antes de realizar doações.");
+          setLoggedDonorName("Perfil não cadastrado");
+        } else {
+          setErrorMessage("Não foi possível carregar o perfil do doador logado.");
+          setLoggedDonorName("Não identificado");
+        }
       }
     };
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../Css/Style.css";
+import { getAuthHeaders } from "../Utils/auth";
 
 const CreateOrganizationRequirement = () => {
   const [requirementData, setRequirementData] = useState({
@@ -14,11 +15,11 @@ const CreateOrganizationRequirement = () => {
   const priorityOptions = ["Alta", "Media", "Baixa"];
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/organizations`)
-      .then((res) => res.json())
-      .then((data) => {
-        setInstitutions(data.organizations);
+    axios
+      .get(`${import.meta.env.VITE_API_BASE_URL}/organizations`, {
+        headers: getAuthHeaders(),
       })
+      .then((res) => setInstitutions(res.data?.organizations || []))
       .catch((err) => console.error("Erro ao carregar instituições:", err));
   }, []);
 

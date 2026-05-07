@@ -45,9 +45,13 @@ export default function UserHome() {
         );
 
         setDonationsHistory(donationsResponse.data?.donations || []);
-      } catch {
+      } catch (error) {
         setDonationsHistory([]);
-        setHistoryError("Não foi possível carregar o histórico de doações.");
+        if (error?.response?.status === 404) {
+          setHistoryError("Complete seu perfil para acompanhar suas doações.");
+        } else {
+          setHistoryError("Não foi possível carregar o histórico de doações.");
+        }
       } finally {
         setHistoryLoading(false);
       }
