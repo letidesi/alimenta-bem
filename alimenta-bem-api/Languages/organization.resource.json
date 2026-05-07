@@ -19,5 +19,26 @@
             "en-US": "Organization not found.",
             "pt-BR": "Instituição não encontrada."
         }
+    },
+    {
+        "Key": "NoAccess",
+        "LocalizedValues": {
+            "en-US": "You do not have access to this organization.",
+            "pt-BR": "Você não tem acesso a esta instituição."
+        }
+    },
+    {
+        "Key": "CnpjAlreadyExists",
+        "LocalizedValues": {
+            "en-US": "An organization with this CNPJ is already registered.",
+            "pt-BR": "Já existe uma instituição cadastrada com este CNPJ."
+        }
+    },
+    {
+        "Key": "CnpjInvalid",
+        "LocalizedValues": {
+            "en-US": "CNPJ must contain exactly 14 digits.",
+            "pt-BR": "O CNPJ deve conter exatamente 14 dígitos."
+        }
     }
 ]

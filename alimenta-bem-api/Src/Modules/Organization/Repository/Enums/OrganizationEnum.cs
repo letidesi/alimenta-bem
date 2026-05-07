@@ -11,5 +11,8 @@ public enum TypeOrganization
     ONG,
 
     [Description("Escola")]
-    Escola
+    Escola,
+
+    [Description("Outros")]
+    Outros
 }

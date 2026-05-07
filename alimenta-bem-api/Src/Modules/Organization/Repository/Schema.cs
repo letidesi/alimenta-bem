@@ -13,5 +13,6 @@ namespace AlimentaBem.Src.Modules.Organization.Repository
         public string name { get; set; }
         public TypeOrganization? type { get; set; }
         public string? description { get; set; }
+        public string? cnpj { get; set; }
     }
 }

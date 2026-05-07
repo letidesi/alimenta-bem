@@ -28,11 +28,25 @@ public class OrganizationData : IOrganizationData
         return _context.Organizations.ToListAsync();
     }
 
+    public Task<List<Organization>> ReadListByIds(IEnumerable<Guid> ids)
+    {
+        return _context.Organizations
+            .Where(o => ids.Contains(o.id))
+            .ToListAsync();
+    }
+
     public Task<Organization?> ReadOne(Guid id)
     {
         return _context.Organizations
             .Where(o => o.id == id)
             .FirstOrDefaultAsync();
+    }
+
+    public Task<bool> CnpjExists(string cnpj, Guid? excludeId = null)
+    {
+        return _context.Organizations
+            .Where(o => o.cnpj == cnpj && (excludeId == null || o.id != excludeId))
+            .AnyAsync();
     }
 
     public async Task<Organization> Update(Organization organization)
