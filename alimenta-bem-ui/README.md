@@ -24,7 +24,7 @@ O frontend do **AlimentaBem** é uma Single Page Application (SPA) em **React** 
 
 - **Cidadãos** se registrarem, fazerem login e registrarem doações de alimentos.
 - **Administradores** gerenciarem pessoas físicas, instituições, necessidades, usuários/cargos, fila de doações por instituição e visualizarem dados do sistema.
-- **Desenvolvedores** gerenciarem cargos de usuários via painel dedicado.
+- **Desenvolvedores** gerenciarem cargos de usuários, excluírem instituições e gerenciarem vínculos usuário-instituição via painel dedicado.
 
 Funcionalidades da plataforma:
 
@@ -81,7 +81,7 @@ alimenta-bem-ui/
     │   ├── CreateDonation.jsx                 # Formulário de doação
     │   ├── UserHome.jsx                       # Pagina inicial do cidadao (historico de doacoes + filtros)
     │   ├── AdminHome.jsx                      # Painel do administrador (badge de pendentes + polling)
-    │   ├── DeveloperHome.jsx                  # Painel do desenvolvedor (gestao de cargos)
+    │   ├── DeveloperHome.jsx                  # Painel do desenvolvedor (cargos, instituições, vínculos)
     │   ├── Profile.jsx                        # Perfil do usuário
     │   └── LoggedUser.jsx
     │
@@ -94,7 +94,8 @@ alimenta-bem-ui/
     │   └── ProtectedLayoutRouter.jsx     # Guard de rota com verificação de role
     │
     ├── Utils/              # Utilitários compartilhados
-    │   ├── apiError.js       # Extrai mensagem de erro da resposta da API
+    │   ├── apiError.js       # Extrai mensagem de erro da resposta da API (centralizado)
+    │   ├── auth.js           # Helpers de JWT: parseToken, isTokenExpired, getAuthHeaders
     │   ├── donationStatus.js # Helpers de status de doação (labels, cores, pendente)
     │   └── constants.js      # Constantes compartilhadas (roles, opções de formulário)
     │
@@ -136,7 +137,7 @@ axios.get(`${import.meta.env.VITE_API_BASE_URL}/natural-persons`)
 npm install
 
 # Iniciar servidor de desenvolvimento (http://localhost:3001)
-npm start
+npm run dev
 
 # Gerar build de produção (saída em /dist)
 npm run build
@@ -167,11 +168,11 @@ Requerem autenticação com role `Citizen`.
 | `/logged-user/profile` | `Profile` | Perfil do usuário (campo PCD como toggle Switch) |
 
 ### Rotas do Desenvolvedor (`/developer`)
-Requerem autenticação com role `Developer` ou `Admin`.
+Requerem autenticação com role `Developer`.
 
 | Rota | Componente | Descrição |
 |---|---|---|
-| `/developer` | `DeveloperHome` | Painel de gestão de cargos de usuários |
+| `/developer` | `DeveloperHome` | Painel de gestão de cargos de usuários, exclusão de instituições e vínculos usuário-instituição |
 
 ### Rotas do Administrador (`/admin`)
 Requerem autenticação com role `Admin`.
