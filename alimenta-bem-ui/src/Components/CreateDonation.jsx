@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { message } from "antd";
+import { Alert, message } from "antd";
 import "../Css/Style.css";
 import { getUserIdFromToken, getAuthHeaders, getJsonAuthHeaders } from "../Utils/auth";
 import { getDonationStatusLabel, getDonationStatusClassName } from "../Utils/donationStatus";
@@ -117,7 +117,21 @@ const CreateDonation = () => {
 
   return (
     <div>
-      {profileError && <div className="error-message">{profileError}</div>}
+      {profileError && (
+        <Alert
+          type="warning"
+          showIcon
+          message={profileError}
+          action={
+            profileError.includes("perfil") && (
+              <a href="/logged-user/profile" style={{ fontWeight: 600, whiteSpace: "nowrap" }}>
+                Completar perfil
+              </a>
+            )
+          }
+          style={{ marginBottom: 20 }}
+        />
+      )}
       <form className="create-user-form" onSubmit={handleSubmit}>
         <h2>Realizar uma doação</h2>
         <div className="form-group">
