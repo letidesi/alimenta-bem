@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using AlimentaBem.Context;
 using AlimentaBem.Helpers;
 using AlimentaBem.Src.Modules.PasswordReset.Repository;
@@ -18,7 +20,7 @@ public class ForgotPasswordEndpoint : Endpoint<ForgotPasswordRequest>
     {
         Post("user/forgot-password");
         AllowAnonymous();
-        Options(u => u.WithTags("user"));
+        Options(u => u.WithTags("user").RequireRateLimiting("forgot-password"));
         Summary(s =>
         {
             s.Summary = "Request password reset";
@@ -42,34 +44,38 @@ public class ForgotPasswordEndpoint : Endpoint<ForgotPasswordRequest>
 
             // Invalida tokens anteriores do usuário
             var oldTokens = await _context.PasswordResetTokens
-                .Where(t => t.userId == user.id && !t.used && t.expiresAt > DateTime.UtcNow)
+                .Where(t => t.userId == user.id && !t.used && t.expiresAt > DateTimeOffset.UtcNow)
                 .ToListAsync(ct);
 
             foreach (var old in oldTokens)
                 old.used = true;
 
-            var token = Guid.NewGuid().ToString("N");
+            // Gera token criptograficamente seguro e armazena apenas o hash
+            var rawTokenBytes = RandomNumberGenerator.GetBytes(32);
+            var rawToken = Convert.ToBase64String(rawTokenBytes)
+                .Replace("+", "-").Replace("/", "_").TrimEnd('=');
+            var tokenHash = Convert.ToHexString(
+                SHA256.HashData(Encoding.UTF8.GetBytes(rawToken)));
+
             _context.PasswordResetTokens.Add(new PasswordResetToken
             {
                 userId = user.id,
-                token = token,
-                expiresAt = DateTime.UtcNow.AddHours(1)
+                token = tokenHash,
+                expiresAt = DateTimeOffset.UtcNow.AddHours(1)
             });
 
             await _context.SaveChangesAsync(ct);
 
             var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "http://localhost:3000";
-            var resetLink = $"{frontendUrl}/reset-password?token={token}";
+            var resetLink = $"{frontendUrl}/reset-password?token={rawToken}";
 
             var fromEmail = _configuration["Resend:FromEmail"] ?? "onboarding@resend.dev";
             var resendKey = Environment.GetEnvironmentVariable("RESEND_API_KEY");
             var isDev = string.IsNullOrEmpty(resendKey);
 
-            Console.WriteLine($"[RESET] isDev={isDev} resendKey={(isDev ? "empty" : "set")} to={user.email}");
-
             if (isDev)
             {
-                Console.WriteLine($"[DEV] Reset link for {user.email}: {resetLink}");
+                Console.WriteLine($"[DEV] Reset link: {resetLink}");
             }
             else
             {

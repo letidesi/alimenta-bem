@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using AlimentaBem.Context;
 using AlimentaBem.Helpers;
 using AlimentaBem.Src.Modules.PasswordReset.UseCases.ResetPassword.DTO;
@@ -14,7 +16,7 @@ public class ResetPasswordEndpoint : Endpoint<ResetPasswordRequest>
     {
         Post("user/reset-password");
         AllowAnonymous();
-        Options(u => u.WithTags("user"));
+        Options(u => u.WithTags("user").RequireRateLimiting("reset-password"));
         Summary(s =>
         {
             s.Summary = "Reset password";
@@ -26,8 +28,12 @@ public class ResetPasswordEndpoint : Endpoint<ResetPasswordRequest>
     {
         try
         {
+            // Hashear o token recebido para comparar com o hash armazenado
+            var tokenHash = Convert.ToHexString(
+                SHA256.HashData(Encoding.UTF8.GetBytes(req.token)));
+
             var resetToken = await _context.PasswordResetTokens
-                .FirstOrDefaultAsync(t => t.token == req.token && !t.used && t.expiresAt > DateTime.UtcNow, ct);
+                .FirstOrDefaultAsync(t => t.token == tokenHash && !t.used && t.expiresAt > DateTimeOffset.UtcNow, ct);
 
             if (resetToken is null)
                 ThrowError(_localizer["passwordReset:InvalidOrExpiredToken"]);
