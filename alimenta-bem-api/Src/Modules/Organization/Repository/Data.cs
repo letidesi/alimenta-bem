@@ -25,7 +25,7 @@ public class OrganizationData : IOrganizationData
 
     public Task<List<Organization>> ReadList()
     {
-        return _context.Organizations.ToListAsync();
+        return _context.Organizations.AsNoTracking().ToListAsync();
     }
 
     public Task<List<Organization>> ReadListByIds(IEnumerable<Guid> ids)

@@ -60,6 +60,16 @@ public class UserOrganizationData : IUserOrganizationData
             .AnyAsync(d => d.naturalPersonId == naturalPersonId && adminOrgIds.Contains(d.organizationId));
     }
 
+    public async Task<bool> Unlink(Guid userId, Guid organizationId)
+    {
+        var link = await _context.UserOrganizations
+            .FirstOrDefaultAsync(uo => uo.userId == userId && uo.organizationId == organizationId);
+        if (link is null) return false;
+        _context.UserOrganizations.Remove(link);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
     public Task<bool> DonorUserBelongsToAdminOrgs(Guid adminUserId, Guid donorUserId)
     {
         var adminOrgIds = _context.UserOrganizations

@@ -15,15 +15,18 @@ public class OrganizationDeleteEndpoint : Endpoint<OrganizationDeleteRequest, Or
     {
         Delete("organization/{id}");
         Options(n => n.WithTags("organization"));
-        Roles(EnumRole.Admin.ToString());
+        Roles(EnumRole.Admin.ToString(), EnumRole.Developer.ToString());
     }
 
     public override async Task HandleAsync(OrganizationDeleteRequest req, CancellationToken ct)
     {
         try
         {
-            var adminUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-            await AdminOrganizationGuard.EnsureAccess(_context, adminUserId, req.id, _localizer);
+            var callerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var isDeveloper = User.IsInRole(EnumRole.Developer.ToString());
+
+            if (!isDeveloper)
+                await AdminOrganizationGuard.EnsureAccess(_context, callerId, req.id, _localizer);
 
             var useCase = new OrganizationDeleteUseCase(_context, _localizer);
 

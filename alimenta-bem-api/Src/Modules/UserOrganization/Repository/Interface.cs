@@ -9,4 +9,5 @@ public interface IUserOrganizationData
     Task<bool> LinkExists(Guid userId, Guid organizationId);
     Task<bool> NaturalPersonBelongsToAdminOrgs(Guid adminUserId, Guid naturalPersonId);
     Task<bool> DonorUserBelongsToAdminOrgs(Guid adminUserId, Guid donorUserId);
+    Task<bool> Unlink(Guid userId, Guid organizationId);
 }

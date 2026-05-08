@@ -18,9 +18,9 @@ public class UserOrganizationCreateUseCase
         _localizer = localizer;
     }
 
-    public async Task<UserOrganizationEntity> exec(Guid requestingAdminId, UserOrganizationCreateRequest req)
+    public async Task<UserOrganizationEntity> exec(Guid requestingAdminId, UserOrganizationCreateRequest req, bool isDeveloper = false)
     {
-        if (!await _data.UserBelongsToOrganization(requestingAdminId, req.organizationId))
+        if (!isDeveloper && !await _data.UserBelongsToOrganization(requestingAdminId, req.organizationId))
             throw new Exception(_localizer["userOrganization:NoAccess"]);
 
         if (await _data.LinkExists(req.userId, req.organizationId))

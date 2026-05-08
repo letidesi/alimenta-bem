@@ -15,7 +15,7 @@ public class UserOrganizationCreateEndpoint : Endpoint<UserOrganizationCreateReq
     {
         Post("user-organization");
         Options(n => n.WithTags("user-organization"));
-        Roles(EnumRole.Admin.ToString());
+        Roles(EnumRole.Admin.ToString(), EnumRole.Developer.ToString());
         Summary(s =>
         {
             s.Summary = "Link an admin to an organization";
@@ -27,11 +27,12 @@ public class UserOrganizationCreateEndpoint : Endpoint<UserOrganizationCreateReq
     {
         try
         {
-            var requestingAdminId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var callerId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var isDeveloper = User.IsInRole(EnumRole.Developer.ToString());
 
             var useCase = new UserOrganizationCreateUseCase(_context, _localizer);
 
-            var result = await useCase.exec(requestingAdminId, req);
+            var result = await useCase.exec(callerId, req, isDeveloper);
 
             await SendAsync(new UserOrganizationCreateResponse
             {
