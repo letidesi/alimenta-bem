@@ -13,12 +13,11 @@ public class UserMap : IEntityTypeConfiguration<User>
                      .HasForeignKey(r => r.userId);
               builder.HasKey(u => u.id);
               builder.Property(u => u.name)
-                     .HasColumnType("varchar(100)");
+                     .HasColumnType("varchar(200)");
               builder.Property(u => u.email)
-                    .HasColumnType("varchar(100)");
-              builder.Property(u => u.name)
-                     .HasColumnType("varchar(100)");
+                    .HasColumnType("varchar(200)");
               builder.Property(u => u.passwordHash)
-                     .HasColumnType("varchar(max)");
+                     .HasColumnType("text");
+              builder.HasIndex(u => u.email).IsUnique().HasFilter("\"deletedAt\" IS NULL");
        }
 }

@@ -3,6 +3,7 @@ using System;
 using AlimentaBem.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AlimentaBem.Migrations
 {
     [DbContext(typeof(AlimentaBemContext))]
-    partial class AlimentaBemContextModelSnapshot : ModelSnapshot
+    [Migration("20260508144907_FixOrganizationRequirementFK")]
+    partial class FixOrganizationRequirementFK
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -286,8 +289,7 @@ namespace AlimentaBem.Migrations
                     b.HasKey("id");
 
                     b.HasIndex("email")
-                        .IsUnique()
-                        .HasFilter("\"deletedAt\" IS NULL");
+                        .IsUnique();
 
                     b.ToTable("Users");
                 });

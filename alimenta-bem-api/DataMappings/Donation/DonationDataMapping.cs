@@ -16,6 +16,8 @@ public class DonationMap : IEntityTypeConfiguration<Donation>
                      .HasForeignKey(d => d.organizationId)
                      .OnDelete(DeleteBehavior.Cascade);
               builder.HasKey(o => o.id);
+              builder.HasIndex(o => o.organizationId);
+              builder.HasIndex(o => o.naturalPersonId);
               builder.Property(o => o.itemName)
                      .HasColumnType("varchar(150)");
               builder.Property(o => o.amountDonated);

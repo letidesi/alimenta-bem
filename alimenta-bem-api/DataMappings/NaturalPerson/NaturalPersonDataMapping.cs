@@ -13,8 +13,9 @@ public class NaturalPersonMap : IEntityTypeConfiguration<NaturalPerson>
                      .IsRequired()
                      .OnDelete(DeleteBehavior.Cascade);
               builder.HasKey(n => n.id);
+              builder.HasIndex(n => n.userId);
               builder.Property(n => n.name)
-                     .HasColumnType("varchar(max)");
+                     .HasColumnType("varchar(200)");
               builder.Property(n => n.socialName)
                      .HasColumnType("varchar(100)")
                      .IsRequired(false);

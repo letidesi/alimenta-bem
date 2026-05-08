@@ -11,7 +11,7 @@ public class OrganizationRequirementMap : IEntityTypeConfiguration<OrganizationR
        {
               builder.HasOne(or => or.organization)
                      .WithMany(o => o.OrganizationRequirements)
-                     .HasForeignKey(or => or.id);
+                     .HasForeignKey(or => or.organizationId);
               builder.HasKey(or => or.id);
               builder.Property(or => or.itemName)
                      .HasColumnType("varchar(150)");

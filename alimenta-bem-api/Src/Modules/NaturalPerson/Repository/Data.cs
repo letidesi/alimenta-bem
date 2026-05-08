@@ -51,7 +51,7 @@
 
         public async Task<List<NaturalPerson>> ReadList()
         {
-            return await _context.NaturalPersons.ToListAsync();
+            return await _context.NaturalPersons.AsNoTracking().ToListAsync();
         }
 
         public async Task<NaturalPerson> Update(NaturalPerson naturalPerson)
