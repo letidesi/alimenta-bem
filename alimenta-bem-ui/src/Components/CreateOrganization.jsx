@@ -38,7 +38,13 @@ const CreateOrganization = () => {
       </div>
       <div className="form-group">
         <label>Tipo da instituição</label>
-        <input type="text" name="type" value={organizationData.type} onChange={handleChange} required />
+        <select name="type" value={organizationData.type} onChange={handleChange} required>
+          <option value="">Selecione</option>
+          <option value="ONG">ONG</option>
+          <option value="Escola">Escola</option>
+          <option value="Igreja">Igreja</option>
+          <option value="Outros">Outros</option>
+        </select>
       </div>
       <div className="form-group">
         <label>Descrição</label>
