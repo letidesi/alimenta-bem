@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <NoWarn>CA2016;RCS1090;CS8618;CS8601;CS8602;CS8603;CS8604;CS8600;IDE1006;IDE0270</NoWarn>
+    <NoWarn>CA2016;RCS1090;IDE1006;IDE0270</NoWarn>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>AlimentaBem</RootNamespace>

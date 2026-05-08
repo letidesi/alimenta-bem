@@ -29,6 +29,8 @@ public class AlimentaBemContext : DbContext
     #endregion
     protected override void OnModelCreating(ModelBuilder mb)
     {
+        mb.ApplyConfigurationsFromAssembly(typeof(AlimentaBemContext).Assembly);
+
         ConfigureSoftDelete(ref mb);
 
         base.OnModelCreating(mb);

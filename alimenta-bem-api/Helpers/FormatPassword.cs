@@ -4,7 +4,7 @@ public class FormatPassword
 {
     public static string GenerateHash(string password)
     {
-        var pwdSalt = BCrypt.Net.BCrypt.GenerateSalt(8);
+        var pwdSalt = BCrypt.Net.BCrypt.GenerateSalt(12);
 
         return BCrypt.Net.BCrypt.HashPassword(password, pwdSalt);
     }

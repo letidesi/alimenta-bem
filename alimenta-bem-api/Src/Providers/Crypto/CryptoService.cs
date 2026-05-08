@@ -11,31 +11,24 @@ namespace AlimentaBem.Src.Providers.Crypto;
 
 public class CryptoService : ICryptoProvider
 {
-    private readonly string JWT_SECRET = Environment.GetEnvironmentVariable("JWT_SECRET");
-    private readonly string privateKEY = GetPrivateKey();
+    private readonly SigningCredentials _signingCredentials;
 
-    private static string GetPrivateKey()
+    public CryptoService()
     {
         var privateKeyContent = Environment.GetEnvironmentVariable("RSA_PRIVATE_KEY");
-        if (!string.IsNullOrWhiteSpace(privateKeyContent))
-            return privateKeyContent.Replace("\\n", "\n");
+        var privateKeyText = !string.IsNullOrWhiteSpace(privateKeyContent)
+            ? privateKeyContent.Replace("\\n", "\n")
+            : File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "private.key"));
 
-        return File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "private.key"));
+        var rsa = RSA.Create();
+        rsa.ImportFromPem(privateKeyText);
+
+        _signingCredentials = new SigningCredentials(
+            new RsaSecurityKey(rsa),
+            SecurityAlgorithms.RsaSha256);
     }
 
-    private SigningCredentials getSecurityKey()
-    {
-        var rsa = new RSACryptoServiceProvider();
-
-        rsa.ImportFromPem(privateKEY);
-
-        var signingCredentials = new SigningCredentials(new RsaSecurityKey(rsa), SecurityAlgorithms.RsaSha256)
-        {
-            CryptoProviderFactory = new CryptoProviderFactory { CacheSignatureProviders = false }
-        };
-
-        return signingCredentials;
-    }
+    private SigningCredentials getSecurityKey() => _signingCredentials;
 
     public string generateAccessToken(User user)
     {

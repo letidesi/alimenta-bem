@@ -7,8 +7,10 @@ using Microsoft.Extensions.Options;
 using System.Text.Json.Serialization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Cryptography;
 using System.Security.Claims;
+using System.Threading.RateLimiting;
 
 public partial class Program
 {
@@ -32,8 +34,12 @@ public partial class Program
     {
         dotenv.net.DotEnv.Load();
 
-        string connectionString = builder.Configuration.GetConnectionString("sqlConnection")
-            ?? Environment.GetEnvironmentVariable("DATABASE_URL")!;
+        string connectionString =
+            builder.Configuration.GetConnectionString("sqlConnection") is { Length: > 0 } cs
+                ? cs
+                : Environment.GetEnvironmentVariable("DATABASE_URL")!;
+
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
         builder.Services.AddDbContext<AlimentaBemContext>(options =>
             options.UseNpgsql(connectionString));
@@ -52,8 +58,8 @@ public partial class Program
             options.AddPolicy("AllowOrigins",
                 b => b
                   .WithOrigins(allowedOrigins.ToArray())
-                  .AllowAnyMethod()
-                  .AllowAnyHeader()
+                  .WithMethods("GET", "POST", "PUT", "DELETE")
+                  .WithHeaders("Authorization", "Content-Type", "Accept-Language")
                   .AllowCredentials()
             );
         });
@@ -108,13 +114,41 @@ public partial class Program
 
         builder.Services.AddFastEndpoints();
 
-        var JWT_SECRET = builder.Configuration.GetSection("JWT_SECRET").Value!;
+        builder.Services.AddRateLimiter(options =>
+        {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+            // 5 tentativas de login por IP por minuto
+            options.AddFixedWindowLimiter("auth", o =>
+            {
+                o.PermitLimit = 5;
+                o.Window = TimeSpan.FromMinutes(1);
+                o.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                o.QueueLimit = 0;
+            });
+
+            // 3 pedidos de reset por IP por hora
+            options.AddFixedWindowLimiter("forgot-password", o =>
+            {
+                o.PermitLimit = 3;
+                o.Window = TimeSpan.FromHours(1);
+                o.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                o.QueueLimit = 0;
+            });
+
+            // 5 usos de token de reset por IP por hora
+            options.AddFixedWindowLimiter("reset-password", o =>
+            {
+                o.PermitLimit = 5;
+                o.Window = TimeSpan.FromHours(1);
+                o.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                o.QueueLimit = 0;
+            });
+        });
 
         builder.Services.AddControllers();
-        builder.Services.AddFastEndpoints();
 
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
         builder.Services.AddSwaggerDocument(document =>
         {
             document.Title = "AlimentaBem";
@@ -126,22 +160,26 @@ public partial class Program
 
     public static void ConfigureApp(WebApplication app, bool isStaging, bool isDevelopment)
     {
-        if (isDevelopment)
+        app.Use(async (context, next) =>
         {
-            app.UseCors("AllowOrigins");
-        }
+            context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+            context.Response.Headers.Append("X-Frame-Options", "DENY");
+            context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+            context.Response.Headers.Append("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+            context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
+            await next();
+        });
+
         app.UseCors("AllowOrigins");
+        app.UseRateLimiter();
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseFastEndpoints(c => c.Serializer.Options.ReferenceHandler = ReferenceHandler.IgnoreCycles);
         app.UseRequestLocalization();
-        app.UseOpenApi();
-
         if (isStaging || isDevelopment)
         {
-            app.UseSwagger();
-            app.UseSwaggerUI();
-
+            app.UseOpenApi();
+            app.UseSwaggerUi();
         }
 
 
