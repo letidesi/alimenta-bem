@@ -12,10 +12,15 @@ export default function DeveloperHome() {
   const [loading, setLoading] = useState(false);
   const [savingUserId, setSavingUserId] = useState(null);
   const [deletingUserId, setDeletingUserId] = useState(null);
+  const [deletingOrgId, setDeletingOrgId] = useState(null);
 
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [addSaving, setAddSaving] = useState(false);
   const [addForm] = Form.useForm();
+
+  const [linkModalOpen, setLinkModalOpen] = useState(false);
+  const [linkForm] = Form.useForm();
+  const [linkSaving, setLinkSaving] = useState(false);
 
   useEffect(() => {
     loadUsers();
@@ -112,6 +117,48 @@ export default function DeveloperHome() {
     }
   };
 
+  const handleDeleteOrg = async (orgId) => {
+    setDeletingOrgId(orgId);
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/organization/${orgId}`, { headers: getAuthHeaders() });
+      message.success("Instituição excluída com sucesso.");
+      await loadOrganizations();
+    } catch (error) {
+      message.error(extractApiError(error, "Não foi possível excluir a instituição."));
+    } finally {
+      setDeletingOrgId(null);
+    }
+  };
+
+  const handleLinkSubmit = async () => {
+    try {
+      const values = await linkForm.validateFields();
+      setLinkSaving(true);
+      if (values.action === "link") {
+        await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/user-organization`,
+          { userId: values.userId, organizationId: values.organizationId },
+          { headers: getJsonAuthHeaders() }
+        );
+        message.success("Usuário vinculado com sucesso.");
+      } else {
+        await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/user-organization`, {
+          headers: getJsonAuthHeaders(),
+          data: { userId: values.userId, organizationId: values.organizationId },
+        });
+        message.success("Usuário desvinculado com sucesso.");
+      }
+      linkForm.resetFields();
+      setLinkModalOpen(false);
+    } catch (error) {
+      if (!error?.errorFields) {
+        message.error(extractApiError(error, "Não foi possível realizar a operação."));
+      }
+    } finally {
+      setLinkSaving(false);
+    }
+  };
+
   const roleColor = (role) => {
     if (role === "Admin") return "red";
     if (role === "Developer") return "purple";
@@ -178,6 +225,79 @@ export default function DeveloperHome() {
         </div>
       )}
 
+      <div style={{ marginTop: 40 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <div>
+            <h2>Gerenciar Instituições</h2>
+            <p>Exclua instituições e suas doações associadas.</p>
+          </div>
+          <Button onClick={() => setLinkModalOpen(true)}>Vincular / Desvincular usuário</Button>
+        </div>
+        {organizations.length === 0 ? (
+          <Empty description="Nenhuma instituição encontrada." />
+        ) : (
+          <div className="admin-user-role-list">
+            {organizations.map((org) => (
+              <Card key={org.id} size="small" className="admin-user-role-card">
+                <div className="admin-user-role-row">
+                  <div>
+                    <strong>{org.name}</strong>
+                    <p>{org.type}</p>
+                  </div>
+                  <Popconfirm
+                    title="Excluir instituição"
+                    description="Isso removerá a instituição e todas as suas doações. Confirma?"
+                    okText="Excluir"
+                    okButtonProps={{ danger: true }}
+                    cancelText="Cancelar"
+                    onConfirm={() => handleDeleteOrg(org.id)}
+                  >
+                    <Button danger loading={deletingOrgId === org.id}>Excluir</Button>
+                  </Popconfirm>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <Modal
+        title="Vincular / Desvincular usuário"
+        open={linkModalOpen}
+        onCancel={() => { setLinkModalOpen(false); linkForm.resetFields(); }}
+        onOk={handleLinkSubmit}
+        confirmLoading={linkSaving}
+        okText="Confirmar"
+        cancelText="Cancelar"
+        width={480}
+        styles={{ body: { padding: "24px 32px 8px" } }}
+      >
+        <Form form={linkForm} layout="vertical" requiredMark={false}>
+          <Form.Item label="Ação" name="action" rules={[{ required: true, message: "Selecione uma ação." }]}>
+            <Select placeholder="Selecione" options={[
+              { value: "link", label: "Vincular" },
+              { value: "unlink", label: "Desvincular" },
+            ]} />
+          </Form.Item>
+          <Form.Item label="Usuário" name="userId" rules={[{ required: true, message: "Selecione um usuário." }]}>
+            <Select
+              showSearch
+              placeholder="Selecione um usuário"
+              optionFilterProp="label"
+              options={usersList.map((u) => ({ value: u.userId, label: `${u.name} (${u.email})` }))}
+            />
+          </Form.Item>
+          <Form.Item label="Instituição" name="organizationId" rules={[{ required: true, message: "Selecione uma instituição." }]}>
+            <Select
+              showSearch
+              placeholder="Selecione uma instituição"
+              optionFilterProp="label"
+              options={organizations.map((o) => ({ value: o.id, label: o.name }))}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
+
       <Modal
         title="Adicionar usuário"
         open={addModalOpen}
@@ -206,7 +326,7 @@ export default function DeveloperHome() {
           <Form.Item
             label="Senha"
             name="password"
-            rules={[{ required: true, message: "Informe a senha." }, { min: 6, message: "Mínimo 6 caracteres." }]}
+            rules={[{ required: true, message: "Informe a senha." }, { min: 12, message: "Mínimo 12 caracteres." }]}
           >
             <Input.Password />
           </Form.Item>
