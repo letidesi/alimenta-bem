@@ -159,5 +159,19 @@
             "en-US": "You do not have access to this donor's data.",
             "pt-BR": "Você não tem acesso aos dados deste doador."
         }
+    },
+    {
+        "Key": "NotFound",
+        "LocalizedValues": {
+            "en-US": "Natural person profile not found.",
+            "pt-BR": "Perfil de pessoa física não encontrado."
+        }
+    },
+    {
+        "Key": "DateOfBirthInvalid",
+        "LocalizedValues": {
+            "en-US": "Date of birth cannot be in the future.",
+            "pt-BR": "A data de nascimento não pode ser uma data futura."
+        }
     }
 ]

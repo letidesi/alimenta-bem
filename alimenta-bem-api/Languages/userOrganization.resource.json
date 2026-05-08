@@ -12,5 +12,12 @@
             "en-US": "This user is already linked to this organization.",
             "pt-BR": "Este usuário já está vinculado a esta instituição."
         }
+    },
+    {
+        "Key": "LinkNotFound",
+        "LocalizedValues": {
+            "en-US": "This user is not linked to this organization.",
+            "pt-BR": "Este usuário não está vinculado a esta instituição."
+        }
     }
 ]

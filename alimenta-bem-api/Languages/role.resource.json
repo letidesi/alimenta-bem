@@ -5,5 +5,12 @@
             "en-US": "Unable to assign this role to the user.",
             "pt-BR": "Não foi possível atribuir este cargo ao usuário."
         }
+    },
+    {
+        "Key": "RoleRequired",
+        "LocalizedValues": {
+            "en-US": "A role is required.",
+            "pt-BR": "O cargo é obrigatório."
+        }
     }
 ]
