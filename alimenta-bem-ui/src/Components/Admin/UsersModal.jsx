@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Button, Card, Empty, Form, Input, Modal, Popconfirm, Select, Space, Spin, Tag, message } from "antd";
-import { getAuthHeaders, getJsonAuthHeaders } from "../../Utils/auth";
 import { ROLE_OPTIONS_ADMIN } from "../../Utils/constants";
 import { extractApiError } from "../../Utils/apiError";
 
@@ -23,9 +22,7 @@ export default function UsersModal({ open, onClose, organizations = [] }) {
   const loadUsers = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users`, {
-        headers: getAuthHeaders(),
-      });
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users`);
       setUsersList(response.data?.users || []);
       setPendingRoles({});
     } catch {
@@ -47,7 +44,6 @@ export default function UsersModal({ open, onClose, organizations = [] }) {
       await axios.put(
         `${import.meta.env.VITE_API_BASE_URL}/user/role`,
         { userId: user.userId, role: roleToSave },
-        { headers: getJsonAuthHeaders() }
       );
       message.success("Cargo atualizado com sucesso.");
       await loadUsers();
@@ -61,7 +57,7 @@ export default function UsersModal({ open, onClose, organizations = [] }) {
   const handleDelete = async (userId) => {
     setDeletingUserId(userId);
     try {
-      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/user/${userId}`, { headers: getAuthHeaders() });
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/user/${userId}`);
       message.success("Usuário excluído com sucesso.");
       await loadUsers();
     } catch (error) {
@@ -85,7 +81,6 @@ export default function UsersModal({ open, onClose, organizations = [] }) {
           role: values.role,
           organizationIds: values.organizationIds ?? [],
         },
-        { headers: getJsonAuthHeaders() }
       );
 
       message.success("Usuário criado e vinculado à instituição com sucesso.");

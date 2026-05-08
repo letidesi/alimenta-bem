@@ -3,7 +3,7 @@ import { Button, Drawer, Layout, Menu, Typography, Grid, Space } from "antd";
 import { MenuOutlined, LogoutOutlined, HeartFilled } from "@ant-design/icons";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { getAuthHeaders, parseToken } from "../Utils/auth";
+import { getSession, clearSession } from "../Utils/auth";
 import "../Css/Style.css";
 
 const { Sider, Header, Content } = Layout;
@@ -18,25 +18,18 @@ export default function DashboardLayout({ menuItems, roleLabel }) {
   const isMobile = !screens.md;
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-
-    if (!token) {
-      navigate("/login", { replace: true });
-      return;
-    }
-
-    const decodedToken = parseToken(token);
-    const userId = decodedToken?.sub || decodedToken?.userId || decodedToken?.id;
+    const session = getSession();
+    const userId = session?.userId;
 
     if (!userId) {
+      navigate("/login", { replace: true });
       return;
     }
 
     const fetchUserName = async () => {
       try {
         const npResponse = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/natural-person/${userId}`,
-          { headers: getAuthHeaders() }
+          `${import.meta.env.VITE_API_BASE_URL}/natural-person/${userId}`
         );
         const naturalPerson = npResponse.data;
 
@@ -51,8 +44,7 @@ export default function DashboardLayout({ menuItems, roleLabel }) {
 
       try {
         const userResponse = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/user/${userId}`,
-          { headers: getAuthHeaders() }
+          `${import.meta.env.VITE_API_BASE_URL}/user/${userId}`
         );
         const user = userResponse.data;
         setUserName(user?.name || "Usuário");
@@ -79,9 +71,13 @@ export default function DashboardLayout({ menuItems, roleLabel }) {
     setMobileMenuOpen(false);
   };
 
-  const handleSignOut = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
+  const handleSignOut = async () => {
+    try {
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/user/logout`);
+    } catch {
+      // ignore — limpa sessão local de qualquer forma
+    }
+    clearSession();
     navigate("/login", { replace: true });
   };
 

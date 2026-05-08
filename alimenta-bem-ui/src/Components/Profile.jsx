@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Switch, message } from "antd";
 import "../Css/Style.css";
-import { getUserIdFromToken, getAuthHeaders, getJsonAuthHeaders } from "../Utils/auth";
+import { getUserIdFromSession } from "../Utils/auth";
 import { validateEmailField } from "../Utils/validation";
 import { extractApiError } from "../Utils/apiError";
 
@@ -25,15 +25,14 @@ const UpdateNaturalPerson = () => {
   const validateEmail = (value) => validateEmailField(value, setEmailError);
 
   useEffect(() => {
-    const userId = getUserIdFromToken();
+    const userId = getUserIdFromSession();
     if (!userId) return;
     setUserId(userId);
 
     const fetchUserData = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/user/${userId}`,
-          { headers: getAuthHeaders() }
+          `${import.meta.env.VITE_API_BASE_URL}/user/${userId}`
         );
 
         const user = response.data.user;
@@ -61,8 +60,7 @@ const UpdateNaturalPerson = () => {
     const fetchNaturalPerson = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/natural-person/${userId}`,
-          { headers: getAuthHeaders() }
+          `${import.meta.env.VITE_API_BASE_URL}/natural-person/${userId}`
         );
         setPersonData((prev) => ({
           ...prev,
@@ -104,8 +102,7 @@ const UpdateNaturalPerson = () => {
       };
       await axios.put(
         `${import.meta.env.VITE_API_BASE_URL}/natural-person`,
-        payload,
-        { headers: getJsonAuthHeaders() }
+        payload
       );
       message.success("Perfil completado com sucesso!");
     } catch (error) {

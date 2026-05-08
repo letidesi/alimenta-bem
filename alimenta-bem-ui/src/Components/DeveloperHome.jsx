@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Button, Card, Empty, Form, Input, Modal, Popconfirm, Select, Space, Spin, Tag, message } from "antd";
-import { getAuthHeaders, getJsonAuthHeaders } from "../Utils/auth";
 import { ROLE_OPTIONS, ROLE_OPTIONS_ASSIGN } from "../Utils/constants";
 import { extractApiError } from "../Utils/apiError";
 
@@ -30,9 +29,7 @@ export default function DeveloperHome() {
   const loadUsers = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users`, {
-        headers: getAuthHeaders(),
-      });
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/users`);
       setUsersList(response.data?.users || []);
       setPendingRoles({});
     } catch {
@@ -45,9 +42,7 @@ export default function DeveloperHome() {
 
   const loadOrganizations = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/organizations`, {
-        headers: getAuthHeaders(),
-      });
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/organizations`);
       setOrganizations(response.data?.organizations || []);
     } catch {
       setOrganizations([]);
@@ -64,8 +59,7 @@ export default function DeveloperHome() {
     try {
       await axios.put(
         `${import.meta.env.VITE_API_BASE_URL}/user/role`,
-        { userId: user.userId, role: roleToSave },
-        { headers: getJsonAuthHeaders() }
+        { userId: user.userId, role: roleToSave }
       );
       message.success("Cargo atualizado com sucesso.");
       await loadUsers();
@@ -79,7 +73,7 @@ export default function DeveloperHome() {
   const handleDelete = async (userId) => {
     setDeletingUserId(userId);
     try {
-      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/user/${userId}`, { headers: getAuthHeaders() });
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/user/${userId}`);
       message.success("Usuário excluído com sucesso.");
       await loadUsers();
     } catch (error) {
@@ -101,8 +95,7 @@ export default function DeveloperHome() {
           password: values.password,
           role: values.role,
           organizationIds: values.organizationIds ?? [],
-        },
-        { headers: getJsonAuthHeaders() }
+        }
       );
       message.success("Usuário criado com sucesso.");
       addForm.resetFields();
@@ -120,7 +113,7 @@ export default function DeveloperHome() {
   const handleDeleteOrg = async (orgId) => {
     setDeletingOrgId(orgId);
     try {
-      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/organization/${orgId}`, { headers: getAuthHeaders() });
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/organization/${orgId}`);
       message.success("Instituição excluída com sucesso.");
       await loadOrganizations();
     } catch (error) {
@@ -137,13 +130,11 @@ export default function DeveloperHome() {
       if (values.action === "link") {
         await axios.post(
           `${import.meta.env.VITE_API_BASE_URL}/user-organization`,
-          { userId: values.userId, organizationId: values.organizationId },
-          { headers: getJsonAuthHeaders() }
+          { userId: values.userId, organizationId: values.organizationId }
         );
         message.success("Usuário vinculado com sucesso.");
       } else {
         await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/user-organization`, {
-          headers: getJsonAuthHeaders(),
           data: { userId: values.userId, organizationId: values.organizationId },
         });
         message.success("Usuário desvinculado com sucesso.");

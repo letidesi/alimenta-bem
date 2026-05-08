@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Button, Card, Empty, Modal, Select, Space, Spin, Tag, message } from "antd";
-import { getAuthHeaders, getJsonAuthHeaders } from "../../Utils/auth";
 import { UNAVAILABLE_REASON_OPTIONS } from "../../Utils/constants";
 import {
   getDonationStatusColor,
@@ -37,7 +36,6 @@ export default function DonationQueueModal({ open, onClose, organizations, onQue
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_API_BASE_URL}/donations/organization/${organizationId}`,
-        { headers: getAuthHeaders() }
       );
       setQueue(response.data?.donations || []);
     } catch {
@@ -58,7 +56,6 @@ export default function DonationQueueModal({ open, onClose, organizations, onQue
       await axios.put(
         `${import.meta.env.VITE_API_BASE_URL}/donation/status`,
         { donationId, organizationId: selectedOrgId, status, unavailableReason },
-        { headers: getJsonAuthHeaders() }
       );
       message.success("Status da doação atualizado com sucesso.");
       await loadQueue(selectedOrgId);

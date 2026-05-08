@@ -3,7 +3,6 @@ import axios from "axios";
 import {
   Button, Card, Empty, Form, Input, Modal, Popconfirm, Select, Space, message,
 } from "antd";
-import { getAuthHeaders, getJsonAuthHeaders } from "../../Utils/auth";
 import { ORGANIZATION_TYPE_OPTIONS } from "../../Utils/constants";
 
 export default function OrganizationsModal({ open, onClose, organizations, onRefresh }) {
@@ -36,7 +35,6 @@ export default function OrganizationsModal({ open, onClose, organizations, onRef
       await axios.put(
         `${import.meta.env.VITE_API_BASE_URL}/organization`,
         { id: values.id, name: values.name, type: values.type, description: values.description, cnpj: values.cnpj || null },
-        { headers: getJsonAuthHeaders() }
       );
       message.success("Instituição atualizada com sucesso.");
       closeEdit();
@@ -53,7 +51,6 @@ export default function OrganizationsModal({ open, onClose, organizations, onRef
     try {
       await axios.delete(
         `${import.meta.env.VITE_API_BASE_URL}/organization/${organizationId}`,
-        { headers: getAuthHeaders() }
       );
       message.success("Instituição excluída com sucesso.");
       await onRefresh();

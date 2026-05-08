@@ -4,13 +4,9 @@ import axios from "axios";
 import { message } from "antd";
 import "../Css/Style.css";
 import { validateEmailField } from "../Utils/validation";
-import { parseToken } from "../Utils/auth";
+import { saveSession } from "../Utils/auth";
 import PasswordInput from "./PasswordInput";
 
-function getHighestPriorityRole(roles) {
-  const rolePriority = ["Admin", "Developer", "Citizen"];
-  return rolePriority.find((role) => roles.includes(role)) || null;
-}
 
 const Login = () => {
   const [loginData, setLoginData] = useState({ email: "", password: "" });
@@ -30,15 +26,9 @@ const Login = () => {
     setLoading(true);
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/user/authenticate`, loginData);
-      const { accesstoken, refreshtoken } = response.data;
+      const { userId, role, expiresAt } = response.data;
 
-      localStorage.setItem("accessToken", accesstoken);
-      localStorage.setItem("refreshToken", refreshtoken);
-
-      const decoded = parseToken(accesstoken);
-      const roles = decoded?.role || decoded?.roles;
-      const normalizedRoles = Array.isArray(roles) ? roles.map(String) : roles ? [String(roles)] : [];
-      const role = getHighestPriorityRole(normalizedRoles);
+      saveSession({ userId, role, expiresAt });
 
       if (role === "Admin") navigate("/admin");
       else if (role === "Developer") navigate("/developer");

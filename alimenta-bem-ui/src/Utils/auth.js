@@ -1,36 +1,30 @@
-import { jwtDecode } from "jwt-decode";
+import axios from "axios";
 
-export const getToken = () => localStorage.getItem("accessToken");
+axios.defaults.withCredentials = true;
 
-export const parseToken = (token) => {
+const SESSION_KEY = "session";
+
+export const saveSession = ({ userId, role, expiresAt }) => {
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify({ userId, role, expiresAt }));
+};
+
+export const getSession = () => {
   try {
-    return jwtDecode(token);
+    return JSON.parse(sessionStorage.getItem(SESSION_KEY));
   } catch {
     return null;
   }
 };
 
-export const isTokenExpired = (decoded) => {
-  if (!decoded?.exp) return true;
-  return decoded.exp <= Math.floor(Date.now() / 1000);
+export const clearSession = () => {
+  sessionStorage.removeItem(SESSION_KEY);
 };
 
-export const getUserIdFromToken = () => {
-  const token = getToken();
-  if (!token) return null;
-  try {
-    const decoded = jwtDecode(token);
-    return decoded?.sub || decoded?.userId || decoded?.id || null;
-  } catch {
-    return null;
-  }
+export const isSessionExpired = (session) => {
+  if (!session?.expiresAt) return true;
+  return session.expiresAt <= Math.floor(Date.now() / 1000);
 };
 
-export const getAuthHeaders = () => ({
-  Authorization: `Bearer ${getToken()}`,
-});
+export const getUserIdFromSession = () => getSession()?.userId ?? null;
 
-export const getJsonAuthHeaders = () => ({
-  Authorization: `Bearer ${getToken()}`,
-  "Content-Type": "application/json",
-});
+export const getRoleFromSession = () => getSession()?.role ?? null;

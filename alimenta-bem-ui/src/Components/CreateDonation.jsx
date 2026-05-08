@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Alert, message } from "antd";
 import "../Css/Style.css";
-import { getUserIdFromToken, getAuthHeaders, getJsonAuthHeaders } from "../Utils/auth";
+import { getUserIdFromSession } from "../Utils/auth";
 import { getDonationStatusLabel, getDonationStatusClassName } from "../Utils/donationStatus";
 
 const CreateDonation = () => {
@@ -23,7 +23,7 @@ const CreateDonation = () => {
   }, []);
 
   useEffect(() => {
-    const userId = getUserIdFromToken();
+    const userId = getUserIdFromSession();
     if (!userId) {
       setProfileError("Usuário não autenticado para doar.");
       setLoggedDonorName("Não identificado");
@@ -32,7 +32,7 @@ const CreateDonation = () => {
 
     const fetchLoggedDonor = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/natural-person/${userId}`, { headers: getAuthHeaders() });
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/natural-person/${userId}`);
         const donor = response.data;
         const donorId = donor?.id || donor?.naturalPersonId || "";
         const donorName = donor?.socialName || donor?.name || "Cidadão logado";
@@ -64,7 +64,7 @@ const CreateDonation = () => {
     if (!naturalPersonId) return;
     setHistoryLoading(true);
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/donations/natural-person/${naturalPersonId}`, { headers: getAuthHeaders() });
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/donations/natural-person/${naturalPersonId}`);
       setDonationsHistory(response.data?.donations || []);
     } catch {
       setDonationsHistory([]);
@@ -103,7 +103,7 @@ const CreateDonation = () => {
     }
     setLoading(true);
     try {
-      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/donation`, donationData, { headers: getJsonAuthHeaders() });
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/donation`, donationData);
       message.success("Doação realizada com sucesso!");
       setDonationData((prev) => ({ ...prev, organizationId: "", itemName: "", amountDonated: 0 }));
       setOrganizationRequirements([]);

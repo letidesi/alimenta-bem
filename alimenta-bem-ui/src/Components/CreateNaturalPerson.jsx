@@ -29,7 +29,6 @@ const CreateNaturalPerson = () => {
         if (!validateEmail(personData.emailUser)) return;
         setLoading(true);
         try {
-            const token = localStorage.getItem('accessToken');
             const payload = {
                 email: personData.emailUser,
                 password: personData.password,
@@ -41,9 +40,7 @@ const CreateNaturalPerson = () => {
                 skinColor: personData.skinColor,
                 isPcd: personData.isPcd
             };
-            await axios.post(`${import.meta.env.VITE_API_BASE_URL}/natural-person/admin`, payload, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            await axios.post(`${import.meta.env.VITE_API_BASE_URL}/natural-person/admin`, payload);
             message.success('Doador criado com sucesso!');
             setPersonData(EMPTY_FORM);
         } catch (error) {

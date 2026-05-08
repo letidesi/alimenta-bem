@@ -18,7 +18,7 @@ import {
 } from "antd";
 import { Link } from "react-router-dom";
 import "../Css/Style.css";
-import { getAuthHeaders } from "../Utils/auth";
+import { getSession, isSessionExpired } from "../Utils/auth";
 import { isDonationPendingReview } from "../Utils/donationStatus";
 import EditRequirementModal from "./Admin/EditRequirementModal";
 import UsersModal from "./Admin/UsersModal";
@@ -60,8 +60,7 @@ export default function AdminHome() {
       organizationList.map(async (organization) => {
         try {
           const response = await axios.get(
-            `${import.meta.env.VITE_API_BASE_URL}/donations/organization/${organization.id}`,
-            { headers: getAuthHeaders() }
+            `${import.meta.env.VITE_API_BASE_URL}/donations/organization/${organization.id}`
           );
 
           return response.data?.donations || [];
@@ -95,8 +94,8 @@ export default function AdminHome() {
     setLoading(true);
     try {
       const [organizationResponse, donorResponse] = await Promise.all([
-        axios.get(`${import.meta.env.VITE_API_BASE_URL}/organizations`, { headers: getAuthHeaders() }),
-        axios.get(`${import.meta.env.VITE_API_BASE_URL}/natural-persons/admin`, { headers: getAuthHeaders() }),
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/organizations`),
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/natural-persons/admin`),
       ]);
 
       const organizationList = organizationResponse.data?.organizations || [];
@@ -133,19 +132,8 @@ export default function AdminHome() {
     if (!organizations.length) return;
 
     const timer = setInterval(() => {
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        clearInterval(timer);
-        return;
-      }
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
-        const isExpired = payload?.exp && payload.exp <= Math.floor(Date.now() / 1000);
-        if (isExpired) {
-          clearInterval(timer);
-          return;
-        }
-      } catch {
+      const session = getSession();
+      if (!session || isSessionExpired(session)) {
         clearInterval(timer);
         return;
       }
@@ -225,8 +213,7 @@ export default function AdminHome() {
   const handleDeleteRequirement = async (requirementId) => {
     try {
       await axios.delete(
-        `${import.meta.env.VITE_API_BASE_URL}/organization-requirement/${requirementId}`,
-        { headers: getAuthHeaders() }
+        `${import.meta.env.VITE_API_BASE_URL}/organization-requirement/${requirementId}`
       );
       setRequirementsByOrganization((prev) =>
         prev.map((org) => ({

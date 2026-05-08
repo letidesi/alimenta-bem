@@ -3,7 +3,6 @@ import axios from "axios";
 import { message } from "antd";
 import { extractApiError } from "../Utils/apiError";
 import "../Css/Style.css";
-import { getAuthHeaders } from "../Utils/auth";
 
 const EMPTY_FORM = { organizationId: "", itemName: "", quantity: 0, type: "" };
 
@@ -12,11 +11,9 @@ const CreateOrganizationRequirement = () => {
   const [institutions, setInstitutions] = useState([]);
   const [loading, setLoading] = useState(false);
   const priorityOptions = ["Alta", "Media", "Baixa"];
-  const token = localStorage.getItem("accessToken");
-
   useEffect(() => {
     axios
-      .get(`${import.meta.env.VITE_API_BASE_URL}/organizations`, { headers: getAuthHeaders() })
+      .get(`${import.meta.env.VITE_API_BASE_URL}/organizations`)
       .then((res) => setInstitutions(res.data?.organizations || []))
       .catch(() => {});
   }, []);
@@ -30,7 +27,6 @@ const CreateOrganizationRequirement = () => {
       await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/organization-requirement`,
         requirementData,
-        { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
       );
       message.success("Item necessário criado com sucesso!");
       setRequirementData(EMPTY_FORM);

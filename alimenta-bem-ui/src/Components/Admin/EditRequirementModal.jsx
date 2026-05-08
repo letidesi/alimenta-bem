@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Form, Input, InputNumber, Modal, Select, message } from "antd";
-import { getJsonAuthHeaders } from "../../Utils/auth";
 import { PRIORITY_OPTIONS } from "../../Utils/constants";
 
 export default function EditRequirementModal({ editingRequirement, organizations, onClose, onSave }) {
@@ -37,7 +36,6 @@ export default function EditRequirementModal({ editingRequirement, organizations
           quantity:       values.quantity,
           type:           values.type,
         },
-        { headers: getJsonAuthHeaders() }
       );
 
       onSave(response.data);

@@ -9,17 +9,13 @@ const EMPTY_FORM = { name: "", type: "", description: "", cnpj: "" };
 const CreateOrganization = () => {
   const [organizationData, setOrganizationData] = useState(EMPTY_FORM);
   const [loading, setLoading] = useState(false);
-  const token = localStorage.getItem("accessToken");
-
   const handleChange = (e) => setOrganizationData({ ...organizationData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/organization`, organizationData, {
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      });
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/organization`, organizationData);
       message.success("Instituição criada com sucesso!");
       setOrganizationData(EMPTY_FORM);
     } catch (error) {

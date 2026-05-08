@@ -3,7 +3,6 @@ import axios from "axios";
 import {
   Button, Card, Empty, Form, Input, Modal, Popconfirm, Select, Space, Spin, message,
 } from "antd";
-import { getAuthHeaders, getJsonAuthHeaders } from "../../Utils/auth";
 import { GENDER_OPTIONS, SKIN_COLOR_OPTIONS } from "../../Utils/constants";
 
 export default function DonorsModal({ open, onClose }) {
@@ -23,7 +22,6 @@ export default function DonorsModal({ open, onClose }) {
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_API_BASE_URL}/natural-persons/admin`,
-        { headers: getAuthHeaders() }
       );
       setDonors(response.data?.naturalPersons || []);
     } catch {
@@ -72,7 +70,6 @@ export default function DonorsModal({ open, onClose }) {
           skinColor:    values.skinColor,
           isPcd:        values.isPcd,
         },
-        { headers: getJsonAuthHeaders() }
       );
       message.success("Doador atualizado com sucesso.");
       closeEdit();
@@ -89,7 +86,6 @@ export default function DonorsModal({ open, onClose }) {
     try {
       await axios.delete(
         `${import.meta.env.VITE_API_BASE_URL}/natural-person/admin/${userId}`,
-        { headers: getAuthHeaders() }
       );
       message.success("Doador excluído com sucesso.");
       await loadDonors();

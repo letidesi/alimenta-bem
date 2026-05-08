@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate} from "react-router-dom";
-import { parseToken, isTokenExpired } from "./Utils/auth";
+import { getSession, isSessionExpired, clearSession } from "./Utils/auth";
 
 import PublicLayout from "./Layouts/PublicLayout";
 import LoggedUserLayout from "./Layouts/LoggedUserLayout";
@@ -20,50 +20,31 @@ import AdminHome from "./Components/AdminHome";
 import DeveloperHome from "./Components/DeveloperHome";
 import Profile from "./Components/Profile";
 
-function normalizeRoles(decodedToken) {
-  const rawRoles = decodedToken?.role || decodedToken?.roles || [];
-
-  if (Array.isArray(rawRoles)) {
-    return rawRoles.map((role) => String(role).toLowerCase());
-  }
-
-  if (typeof rawRoles === "string" && rawRoles.length > 0) {
-    return [rawRoles.toLowerCase()];
-  }
-
-  return [];
-}
-
-function getDefaultRouteByRoles(roles) {
-  if (roles.includes("admin")) return "/admin";
-  if (roles.includes("developer")) return "/developer";
-  if (roles.includes("citizen")) return "/logged-user";
+function getDefaultRouteByRole(role) {
+  if (!role) return "/login";
+  const r = role.toLowerCase();
+  if (r === "admin") return "/admin";
+  if (r === "developer") return "/developer";
+  if (r === "citizen") return "/logged-user";
   return "/login";
 }
 
 function RequireAccess({ allowRoles = [], denyRoles = [], children }) {
-  const token = localStorage.getItem("accessToken");
+  const session = getSession();
 
-  if (!token) return <Navigate to="/login" replace />;
-
-  const decoded = parseToken(token);
-  if (!decoded || isTokenExpired(decoded)) {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
+  if (!session || isSessionExpired(session)) {
+    clearSession();
     return <Navigate to="/login" replace />;
   }
 
-  const roles = normalizeRoles(decoded);
-  const hasDeniedRole = denyRoles.some((role) => roles.includes(role.toLowerCase()));
+  const role = session.role?.toLowerCase() ?? "";
 
-  if (hasDeniedRole) {
-    return <Navigate to={getDefaultRouteByRoles(roles)} replace />;
+  if (denyRoles.some((r) => r.toLowerCase() === role)) {
+    return <Navigate to={getDefaultRouteByRole(session.role)} replace />;
   }
 
-  const hasAllowedRole = allowRoles.some((role) => roles.includes(role.toLowerCase()));
-
-  if (!hasAllowedRole) {
-    return <Navigate to={getDefaultRouteByRoles(roles)} replace />;
+  if (!allowRoles.some((r) => r.toLowerCase() === role)) {
+    return <Navigate to={getDefaultRouteByRole(session.role)} replace />;
   }
 
   return children;

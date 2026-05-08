@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import "../Css/Style.css";
-import { getAuthHeaders, getUserIdFromToken } from "../Utils/auth";
+import { getUserIdFromSession } from "../Utils/auth";
 import { getDonationStatusClassName, getDonationStatusLabel } from "../Utils/donationStatus";
 
 export default function UserHome() {
@@ -14,7 +14,7 @@ export default function UserHome() {
 
   useEffect(() => {
     const loadHistory = async () => {
-      const userId = getUserIdFromToken();
+      const userId = getUserIdFromSession();
 
       if (!userId) {
         setHistoryError("Faça login novamente para visualizar suas doações.");
@@ -26,8 +26,7 @@ export default function UserHome() {
 
       try {
         const donorResponse = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/natural-person/${userId}`,
-          { headers: getAuthHeaders() }
+          `${import.meta.env.VITE_API_BASE_URL}/natural-person/${userId}`
         );
 
         const donor = donorResponse.data;
@@ -40,8 +39,7 @@ export default function UserHome() {
         }
 
         const donationsResponse = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/donations/natural-person/${donorId}`,
-          { headers: getAuthHeaders() }
+          `${import.meta.env.VITE_API_BASE_URL}/donations/natural-person/${donorId}`
         );
 
         setDonationsHistory(donationsResponse.data?.donations || []);
