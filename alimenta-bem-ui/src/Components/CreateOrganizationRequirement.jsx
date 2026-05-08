@@ -18,7 +18,7 @@ const CreateOrganizationRequirement = () => {
     axios
       .get(`${import.meta.env.VITE_API_BASE_URL}/organizations`, { headers: getAuthHeaders() })
       .then((res) => setInstitutions(res.data?.organizations || []))
-      .catch((err) => console.error("Erro ao carregar instituições:", err));
+      .catch(() => {});
   }, []);
 
   const handleChange = (e) => setRequirementData({ ...requirementData, [e.target.name]: e.target.value });

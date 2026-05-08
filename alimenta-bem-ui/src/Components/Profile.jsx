@@ -47,8 +47,8 @@ const UpdateNaturalPerson = () => {
           name: name ?? prev.name,
           userId: userId,
         }));
-      } catch (error) {
-        console.error("Erro ao buscar os dados do usuário", error);
+      } catch {
+        // silently ignore — user sees stale/empty state
       }
     };
 
@@ -68,8 +68,8 @@ const UpdateNaturalPerson = () => {
           ...prev,
           ...response.data,
         }));
-      } catch (error) {
-        console.error("Erro ao buscar dados naturalPerson", error);
+      } catch {
+        // silently ignore — form stays with default empty state
       }
     };
 
