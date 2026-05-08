@@ -17,7 +17,6 @@ namespace AlimentaBem.Src.Modules.User.UseCases.ReadOne
             userId = u.id,
             name = u.name,
             email = u.email,
-            password = u.passwordHash,
         };
     }
 }
