@@ -177,7 +177,8 @@ http://localhost:5178/swagger
 | Método | Rota | Descrição | Acesso |
 |---|---|---|---|
 | `POST` | `/user` | Cadastra novo usuário | Público |
-| `POST` | `/user/authenticate` | Autentica e retorna JWT | Público (rate limit: 5/min) |
+| `POST` | `/user/authenticate` | Autentica e seta cookies JWT | Público (rate limit: 5/min) |
+| `POST` | `/user/logout` | Expira os cookies de sessão | Público |
 | `POST` | `/user/admin` | Cria usuário com role e vínculos | Admin, Developer |
 | `GET` | `/user/{userId}` | Busca usuário por ID | Autenticado |
 | `GET` | `/users` | Lista todos os usuários | Admin, Developer |
@@ -244,10 +245,10 @@ http://localhost:5178/swagger
 A API usa **JWT RS256** (assinatura assimétrica com par de chaves RSA):
 
 1. `POST /user/authenticate` com `{ "email": "...", "password": "..." }`
-2. Use o `accessToken` retornado no header de todas as requisições protegidas:
-   ```
-   Authorization: Bearer <accessToken>
-   ```
+2. A API seta dois cookies `HttpOnly` na resposta: `accessToken` (1h) e `refreshToken` (30 dias).
+3. O body retorna apenas `{ userId, role, expiresAt }` — o token nunca é exposto ao JavaScript.
+4. Todas as requisições autenticadas enviam os cookies automaticamente (sem `Authorization` header).
+5. Para encerrar a sessão: `POST /user/logout` — expira os cookies no servidor.
 
 **Roles disponíveis:**
 
@@ -262,8 +263,11 @@ A API usa **JWT RS256** (assinatura assimétrica com par de chaves RSA):
 ## Segurança
 
 - **JWT RS256** — par de chaves RSA 2048 bits; chave privada nunca exposta ao cliente
+- **HttpOnly cookies** — `accessToken` e `refreshToken` inacessíveis via JavaScript; token nunca retornado no body
 - **BCrypt fator 12** — senha mínima de 12 e máxima de 128 caracteres
 - **Reset de senha seguro** — token gerado com `RandomNumberGenerator`, apenas o hash SHA-256 é armazenado no banco
+- **Senhas nunca retornadas** — DTOs de resposta não incluem `passwordHash` em nenhum endpoint
+- **Validação de data de nascimento** — rejeita datas futuras e anteriores a 01/01/1900
 - **Rate limiting nativo ASP.NET 8:**
   - `/user/authenticate` — 5 tentativas por IP por minuto
   - `/user/forgot-password` — 3 pedidos por IP por hora
@@ -271,7 +275,7 @@ A API usa **JWT RS256** (assinatura assimétrica com par de chaves RSA):
 - **IDOR protegido** — Citizen só acessa e edita o próprio perfil (userId forçado do JWT)
 - **Soft delete com índice parcial** — e-mail único apenas entre registros ativos (`WHERE deletedAt IS NULL`)
 - **Headers de segurança HTTP** — X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy, X-XSS-Protection
-- **CORS restrito** — origens, métodos e headers explicitamente configurados
+- **CORS restrito** — origens, métodos e headers explicitamente configurados com `AllowCredentials`
 
 ---
 

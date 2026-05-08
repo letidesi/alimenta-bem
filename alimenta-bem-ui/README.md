@@ -95,7 +95,7 @@ alimenta-bem-ui/
     │
     ├── Utils/              # Utilitários compartilhados
     │   ├── apiError.js       # Extrai mensagem de erro da resposta da API (centralizado)
-    │   ├── auth.js           # Helpers de JWT: parseToken, isTokenExpired, getAuthHeaders
+    │   ├── auth.js           # Sessão: saveSession, getSession, clearSession, getUserIdFromSession
     │   ├── donationStatus.js # Helpers de status de doação (labels, cores, pendente)
     │   └── constants.js      # Constantes compartilhadas (roles, opções de formulário)
     │
@@ -200,16 +200,20 @@ Requerem autenticação com role `Admin`.
 O fluxo de autenticação funciona da seguinte forma:
 
 1. O usuário faz login em `/login`.
-2. O token JWT retornado pela API é salvo em `localStorage` com a chave `accessToken`.
-3. O componente `RequireAccess` (em `App.jsx`) decodifica o token, valida expiração e verifica roles permitidas e negadas por área.
-4. Se não autenticado, token inválido/expirado ou role incompatível com a rota, o usuário é redirecionado para a área correta ou para `/login`.
-5. A navegação por URL digitada/colada também é validada, evitando acesso cruzado entre áreas (ex.: admin acessando rotas de cidadão).
+2. A API seta cookies `HttpOnly` — o token JWT nunca é acessível via JavaScript.
+3. O body da resposta retorna apenas `{ userId, role, expiresAt }`, salvo em `sessionStorage` como metadata de sessão.
+4. O componente `RequireAccess` (em `App.jsx`) lê a sessão do `sessionStorage`, valida expiração e verifica a role permitida por área.
+5. Todas as requisições axios usam `withCredentials: true` — o cookie é enviado automaticamente pelo browser.
+6. O logout chama `POST /user/logout` (expira o cookie no servidor) e limpa o `sessionStorage`.
+7. A navegação por URL digitada/colada também é validada, evitando acesso cruzado entre áreas.
 
 ```
-Token → localStorage (accessToken)
-         ↓
-    RequireAccess valida token + regras de rota
-         ↓
+Login → API seta cookie HttpOnly
+             ↓
+    sessionStorage guarda { userId, role, expiresAt }
+             ↓
+    RequireAccess valida sessão + role
+             ↓
     ✅ Acesso liberado  ou  🔒 Redireciona para /login
 ```
 
