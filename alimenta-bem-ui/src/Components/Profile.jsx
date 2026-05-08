@@ -4,6 +4,7 @@ import { Switch, message } from "antd";
 import "../Css/Style.css";
 import { getUserIdFromToken, getAuthHeaders, getJsonAuthHeaders } from "../Utils/auth";
 import { validateEmailField } from "../Utils/validation";
+import { extractApiError } from "../Utils/apiError";
 
 const UpdateNaturalPerson = () => {
   const [personData, setPersonData] = useState({
@@ -98,6 +99,8 @@ const UpdateNaturalPerson = () => {
       const payload = {
         ...personData,
         userId: userId,
+        age: personData.age || null,
+        birthdayDate: personData.birthdayDate || null,
       };
       await axios.put(
         `${import.meta.env.VITE_API_BASE_URL}/natural-person`,
@@ -106,7 +109,7 @@ const UpdateNaturalPerson = () => {
       );
       message.success("Perfil completado com sucesso!");
     } catch (error) {
-      message.error("Ocorreu um erro ao completar o perfil.");
+      message.error(extractApiError(error, "Ocorreu um erro ao completar o perfil."));
     }
   };
 
@@ -134,9 +137,8 @@ const UpdateNaturalPerson = () => {
             type="text"
             name="name"
             value={personData.name}
-            onChange={(e) =>
-              setPersonData({ ...personData, name: e.target.value })
-            }
+            onChange={(e) => setPersonData({ ...personData, name: e.target.value })}
+            required
           />
         </div>
         <div className="form-group">
@@ -158,6 +160,7 @@ const UpdateNaturalPerson = () => {
             value={personData.age}
             onChange={handleChange}
             min={0}
+            required
           />
         </div>
         <div className="form-group">
@@ -167,6 +170,7 @@ const UpdateNaturalPerson = () => {
             name="birthdayDate"
             value={personData.birthdayDate}
             onChange={handleChange}
+            required
           />
         </div>
         <div className="form-group">
