@@ -1,4 +1,5 @@
-﻿using AlimentaBem.Context;
+﻿using System.Security.Claims;
+using AlimentaBem.Context;
 using AlimentaBem.Helpers;
 using AlimentaBem.Src.Modules.Role.Enum;
 using AlimentaBem.Src.Modules.NaturalPerson.UseCases.ReadOne.DTO;
@@ -25,6 +26,15 @@ public class NaturalPersonReadOneEndPoint : Endpoint<NaturalPersonReadOneRequest
     {
         try
         {
+            var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var isAdmin = User.IsInRole(EnumRole.Admin.ToString());
+
+            if (!isAdmin && req.userId != currentUserId)
+            {
+                await SendForbiddenAsync(ct);
+                return;
+            }
+
             var naturalPersonReadOneUseCase = new NaturalPersonReadOneUseCase(_context, _localizer);
 
             var naturalPerson = Map.ToEntity(req);

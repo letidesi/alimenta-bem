@@ -18,7 +18,7 @@ namespace AlimentaBem.Src.Modules.User.UseCases.Authenticate
         public override void Configure()
         {
             Post("user/authenticate");
-            Options(u => u.WithTags("user"));
+            Options(u => u.WithTags("user").RequireRateLimiting("auth"));
             Summary(s =>
             {
                 s.Summary = "Create a new user";

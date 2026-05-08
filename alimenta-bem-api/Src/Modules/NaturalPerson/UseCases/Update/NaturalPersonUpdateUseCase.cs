@@ -23,37 +23,25 @@ namespace AlimentaBem.Src.Modules.NaturalPerson.UseCases.Update
         public async Task<NaturalPerson> exec(NaturalPerson naturalPerson)
         {
             var targetNaturalPerson = await _naturalPersonData.CheckNaturalPersonAlreadyExist(naturalPerson);
-            if (targetNaturalPerson is not null)
+
+            if (targetNaturalPerson is null)
             {
-                targetNaturalPerson.name = naturalPerson.name;
-                targetNaturalPerson.socialName = naturalPerson.socialName;
-                targetNaturalPerson.emailUser = naturalPerson.emailUser;
-                targetNaturalPerson.age = naturalPerson.age;
-                targetNaturalPerson.birthdayDate = naturalPerson.birthdayDate;
-                targetNaturalPerson.skinColor = naturalPerson.skinColor;
-                targetNaturalPerson.gender = naturalPerson.gender;
-                targetNaturalPerson.isPcd = naturalPerson.isPcd;
-
-                await _naturalPersonData.Update(targetNaturalPerson);
-
-                return targetNaturalPerson;
+                _validateNaturalPersonData.ValidateNaturalPersonFields(naturalPerson);
+                return await _naturalPersonData.Create(naturalPerson);
             }
 
-            _validateNaturalPersonData.ValidateNaturalPersonFields(naturalPerson);
-            await _validateNaturalPersonData.ExistDataOfNaturalPerson(naturalPerson);
+            targetNaturalPerson.name = naturalPerson.name;
+            targetNaturalPerson.socialName = naturalPerson.socialName;
+            targetNaturalPerson.emailUser = naturalPerson.emailUser;
+            targetNaturalPerson.age = naturalPerson.age;
+            targetNaturalPerson.birthdayDate = naturalPerson.birthdayDate;
+            targetNaturalPerson.skinColor = naturalPerson.skinColor;
+            targetNaturalPerson.gender = naturalPerson.gender;
+            targetNaturalPerson.isPcd = naturalPerson.isPcd;
 
-            var user = await _naturalPersonData.GetUserByEmail(naturalPerson.emailUser);
-            if (user is null)
-                throw new Exception(_localizer["user:UserNotFound"]);
+            await _naturalPersonData.Update(targetNaturalPerson);
 
-            naturalPerson.userId = user.id;
-            naturalPerson.user = user;
-
-            var updateNaturalPerson = await _naturalPersonData.Create(naturalPerson);
-            if (updateNaturalPerson is null)
-                throw new Exception(_localizer["naturalPerson:IndividualCreationFailed"]);
-
-            return updateNaturalPerson;
+            return targetNaturalPerson;
         }
     }
 }

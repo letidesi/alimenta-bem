@@ -22,9 +22,9 @@ public class Validator : Validator<UserCreateRequest>
         RuleFor(request => request.password)
             .NotEmpty()
             .WithMessage(_localizer["user:PasswordRequired"])
-            .MinimumLength(6)
+            .MinimumLength(12)
             .WithMessage(_localizer["user:PasswordShort"])
-            .MaximumLength(25)
+            .MaximumLength(128)
             .WithMessage(_localizer["user:PasswordLong"]);
     }
 }

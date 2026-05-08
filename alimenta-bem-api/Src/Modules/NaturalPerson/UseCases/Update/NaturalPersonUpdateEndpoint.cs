@@ -1,4 +1,5 @@
-﻿using AlimentaBem.Context;
+﻿using System.Security.Claims;
+using AlimentaBem.Context;
 using AlimentaBem.Helpers;
 using AlimentaBem.Src.Modules.Role.Enum;
 using AlimentaBem.Src.Modules.NaturalPerson.UseCases.Update.DTO;
@@ -26,6 +27,9 @@ public class NaturalPersonUpdateEndPoint : Endpoint<NaturalPersonUpdateRequest, 
     {
         try
         {
+            if (!User.IsInRole(EnumRole.Admin.ToString()))
+                req.userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
             var naturalPersonUpdateUseCase = new NaturalPersonUpdateUseCase(_context, _localizer);
 
             var naturalPerson = Map.ToEntity(req);

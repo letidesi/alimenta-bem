@@ -119,7 +119,7 @@ public class UserData : IUserData
 
         if (user is null) return false;
 
-        user.deletedAt = DateTime.UtcNow;
+        user.deletedAt = DateTimeOffset.UtcNow;
         await _context.SaveChangesAsync();
         return true;
     }
