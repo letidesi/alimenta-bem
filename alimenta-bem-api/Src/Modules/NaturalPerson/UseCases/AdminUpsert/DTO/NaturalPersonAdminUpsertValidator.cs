@@ -30,6 +30,8 @@ public class Validator : Validator<NaturalPersonAdminUpsertRequest>
 
         RuleFor(request => request.birthdayDate)
             .NotEmpty()
-            .WithMessage(localizer["naturalPerson:BirthdayDateRequired"]);
+            .WithMessage(localizer["naturalPerson:BirthdayDateRequired"])
+            .Must(date => date <= DateOnly.FromDateTime(DateTime.Today) && date >= new DateOnly(1900, 1, 1))
+            .WithMessage(localizer["naturalPerson:BirthdayDateInvalid"]);
     }
 }

@@ -23,6 +23,8 @@ public class Validator : Validator<NaturalPersonUpdateRequest>
 
         RuleFor(request => request.birthdayDate)
             .NotEmpty()
-            .WithMessage(_localizer["naturalPerson:BirthdayDateRequired"]);
+            .WithMessage(_localizer["naturalPerson:BirthdayDateRequired"])
+            .Must(date => date <= DateOnly.FromDateTime(DateTime.Today) && date >= new DateOnly(1900, 1, 1))
+            .WithMessage(_localizer["naturalPerson:BirthdayDateInvalid"]);
     }
 }

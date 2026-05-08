@@ -59,9 +59,10 @@ public class ValidateNaturalPersonData
     {
         if (birthdayDate.HasValue)
         {
-            DateOnly currentDate = DateOnly.FromDateTime(DateTime.Now);
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            var minDate = new DateOnly(1900, 1, 1);
 
-            if (birthdayDate > currentDate)
+            if (birthdayDate > today || birthdayDate < minDate)
                 throw new Exception(_localizer["naturalPerson:DateOfBirthInvalid"]);
         }
 
