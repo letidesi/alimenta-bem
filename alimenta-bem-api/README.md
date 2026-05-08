@@ -1,6 +1,6 @@
 # AlimentaBem — API
 
-> API RESTful do sistema **AlimentaBem**, uma plataforma de gestão de doações de alimentos que conecta cidadãos, organizações e administradores.
+> API RESTful do sistema **AlimentaBem**, uma plataforma de gestão de doações de alimentos que conecta cidadãos, organizações sociais e administradores.
 
 ---
 
@@ -15,29 +15,23 @@
 - [Documentação da API (Swagger)](#documentação-da-api-swagger)
 - [Módulos e Endpoints](#módulos-e-endpoints)
 - [Autenticação](#autenticação)
+- [Segurança](#segurança)
 - [Migrações do Banco de Dados](#migrações-do-banco-de-dados)
+- [Internacionalização](#internacionalização)
 - [Convenções de Código](#convenções-de-código)
 
 ---
 
 ## Visão Geral
 
-O **AlimentaBem** é um sistema que permite:
+O **AlimentaBem API** é construída sobre **.NET 8** com **FastEndpoints**, seguindo princípios de **DDD** e **CQRS** (separação de leitura e escrita via casos de uso).
 
-- **Cidadãos** criarem cadastros e registrarem doações de alimentos.
-- **Organizações** cadastrarem suas necessidades de itens.
-- **Administradores** gerenciarem usuários, cargos (roles), pessoas físicas, organizações e todo o fluxo de doações.
-- **Desenvolvedores** gerenciarem cargos de usuários via painel dedicado.
+Suporta quatro perfis de acesso:
 
-Funcionalidades do domínio de doações e administração:
-
-- Fluxo de doação por status (`Submitted`, `InReview`, `ReadyForDelivery`, `Received`, `TemporarilyUnavailable`).
-- Fila de doações por instituição e histórico de doações por doador.
-- Atualização de status da doação com motivo de indisponibilidade e mensagem amigável ao cidadão.
-- Gestão de instituições também por atualização e exclusão (além do cadastro).
-- Controle de acesso por cargo em todos os endpoints protegidos.
-
-A API é construída sobre **.NET 8** com **FastEndpoints**, seguindo os princípios de **Clean Architecture**, **DDD** e **CQRS** (separação de leitura e escrita via casos de uso).
+- **Cidadão** — registra doações e gerencia o próprio perfil.
+- **Administrador** — gerencia usuários, doadores, organizações vinculadas e fila de doações.
+- **Developer** — acesso global: gerencia todos os usuários, todas as instituições e vínculos.
+- **Público** — consulta organizações e necessidades cadastradas.
 
 ---
 
@@ -48,11 +42,12 @@ A API é construída sobre **.NET 8** com **FastEndpoints**, seguindo os princí
 | .NET | 8.0 | Plataforma principal |
 | FastEndpoints | 5.26 | Endpoints HTTP enxutos e tipados |
 | Entity Framework Core | 8.0 | ORM e migrações |
-| SQL Server | — | Banco de dados relacional |
+| PostgreSQL (Neon) | — | Banco de dados relacional |
 | FluentValidation | 11.9 | Validação de requisições |
-| NSwag / Swagger | 14.0 / 6.4 | Documentação da API |
-| JWT Bearer (RSA-256) | — | Autenticação stateless |
-| BCrypt.Net-Next | 4.0 | Hash de senhas |
+| NSwag | 14.0 | Documentação Swagger |
+| JWT Bearer RS256 | — | Autenticação stateless com chaves RSA |
+| BCrypt.Net-Next | 4.0 | Hash de senhas (fator 12) |
+| Resend | 0.5 | Envio de e-mails transacionais |
 | dotenv.net | 3.1 | Leitura de variáveis de ambiente |
 
 ---
@@ -61,34 +56,36 @@ A API é construída sobre **.NET 8** com **FastEndpoints**, seguindo os princí
 
 ```
 alimenta-bem-api/
-├── AlimentaBem.csproj          # Arquivo de projeto .NET
-├── Program.cs                  # Bootstrap: DI, middlewares, configurações
-├── appsettings.json            # Configurações base
+├── AlimentaBem.csproj
+├── Program.cs                  # Bootstrap: DI, middlewares, segurança, rate limiting
+├── appsettings.json
 ├── .env                        # Variáveis de ambiente (não versionar)
-├── public.key / private.key    # Par de chaves RSA para JWT
+├── public.key / private.key    # Par de chaves RSA para JWT (opcional se usar env vars)
 │
 ├── Context/
-│   └── DbContext.cs            # EF Core DbContext com todas as entidades
+│   └── DbContext.cs            # EF Core DbContext com ApplyConfigurationsFromAssembly
 │
 ├── DataMappings/               # Configurações Fluent API por entidade
 │   ├── Donation/
 │   ├── NaturalPerson/
 │   ├── Organization/
 │   ├── OrganizationRequirement/
+│   ├── PasswordReset/
 │   ├── Role/
 │   └── User/
 │
-├── EntityMetadata/             # Classes base e interfaces reutilizáveis
+├── EntityMetadata/             # Classes base reutilizáveis
 │   ├── BaseEntity.cs           # Id (Guid) gerado automaticamente
-│   ├── WithTimeStamp.cs        # CreatedAt / UpdatedAt
+│   ├── WithTimeStamp.cs        # CreatedAt / UpdatedAt / DeletedAt (DateTimeOffset)
 │   └── Interface/
 │       ├── IAuditable.cs
-│       └── ISoftDelete.cs      # Exclusão lógica (DeletedAt)
+│       └── ISoftDelete.cs
 │
 ├── Helpers/                    # Utilitários transversais
 │   ├── DependencyInjectionConfig.cs
-│   ├── FormatPassword.cs
-│   ├── EmailValidation.cs
+│   ├── FormatPassword.cs       # BCrypt fator 12
+│   ├── ValidationNaturalPerson.cs
+│   ├── AdminOrganizationGuard.cs
 │   └── I18N/                   # Internacionalização (pt-BR / en-US)
 │
 ├── Languages/                  # Arquivos de tradução JSON por módulo
@@ -96,80 +93,57 @@ alimenta-bem-api/
 ├── Migrations/                 # Migrações EF Core geradas
 │
 └── Src/
-    ├── Modules/                # Módulos de domínio (DDD)
-    │   ├── User/
-    │   │   ├── UseCases/
-    │   │   │   ├── Authenticate/
-    │   │   │   ├── Create/
-    │   │   │   └── ReadOne/
-    │   │   └── Repository/
-    │   ├── NaturalPerson/
-    │   │   ├── UseCases/
-    │   │   │   ├── ReadList/
-    │   │   │   ├── ReadOne/
-    │   │   │   └── Update/
-    │   │   └── Repository/
-    │   ├── Organization/
-    │   │   ├── UseCases/ (Create, ReadList, Update, Delete)
-    │   │   └── Repository/
-    │   ├── OrganizationRequirement/
-    │   │   ├── UseCases/
-    │   │   └── Repository/
-    │   ├── Donation/
-    │   │   ├── UseCases/ (Create, ReadListByNaturalPerson, ReadListByOrganization, UpdateStatus)
-    │   │   └── Repository/
+    ├── Modules/
+    │   ├── User/               # Authenticate, Create, AdminCreate, ReadOne, ReadList, Delete, UpdateRole
+    │   ├── NaturalPerson/      # ReadOne, ReadList, AdminReadList, Update, AdminUpsert, AdminDelete
+    │   ├── Organization/       # Create, ReadList, Update, Delete
+    │   ├── OrganizationRequirement/ # Create, ReadListByOrganization, Update, Delete
+    │   ├── Donation/           # Create, ReadListByNaturalPerson, ReadListByOrganization, UpdateStatus
+    │   ├── UserOrganization/   # Create (vincular), Delete (desvincular)
+    │   ├── PasswordReset/      # ForgotPassword, ResetPassword
     │   └── Role/
-    │       ├── UseCases/ Repository/ Enum/
-    │
     └── Providers/
-        └── Crypto/             # Serviço de criptografia (RSA + BCrypt)
+        └── Crypto/             # CryptoService — RSA singleton cacheado
 ```
-
-Cada caso de uso contém seus próprios arquivos: `Endpoint.cs`, `Request.cs`, `Response.cs` e `Validator.cs`.
 
 ---
 
 ## Pré-requisitos
 
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8)
-- [SQL Server](https://www.microsoft.com/pt-br/sql-server/sql-server-downloads) (ou SQL Server Express)
-- [EF Core CLI Tools](https://learn.microsoft.com/pt-br/ef/core/cli/dotnet)
-- [OpenSSL](https://slproweb.com/products/Win32OpenSSL.html) (para gerar as chaves RSA)
-
-```bash
-dotnet tool install --global dotnet-ef
-```
+- [EF Core CLI](https://learn.microsoft.com/pt-br/ef/core/cli/dotnet): `dotnet tool install --global dotnet-ef`
+- Banco PostgreSQL (ou conta gratuita no [Neon](https://neon.tech))
+- [OpenSSL](https://slproweb.com/products/Win32OpenSSL.html) para gerar as chaves RSA
 
 ---
 
 ## Configuração do Ambiente
 
-### 1. String de conexão
+### 1. Variáveis de ambiente
 
-Edite `appsettings.json` com os dados do seu SQL Server:
-
-```json
-"ConnectionStrings": {
-  "sqlConnection": "Server=SEU_SERVIDOR;Database=NOME_DO_BANCO;Integrated Security=True;TrustServerCertificate=True;"
-}
-```
-
-### 2. Variáveis de ambiente
-
-Crie um arquivo `.env` na raiz do projeto:
+Crie um arquivo `.env` na raiz de `alimenta-bem-api/` (use `.env.example` como base):
 
 ```env
-JWT_SECRET=sua_chave_secreta_aqui
-API_KEY=sua_api_key_aqui
+DATABASE_URL=Host=...;Database=...;Username=...;Password=...;SSL Mode=Require;Trust Server Certificate=true
+RESEND_API_KEY=re_...
+FRONTEND_URL=http://localhost:3000
+RSA_PRIVATE_KEY=        # conteúdo do private.key com \n no lugar das quebras de linha
+RSA_PUBLIC_KEY=         # conteúdo do public.key com \n no lugar das quebras de linha
 ```
 
-### 3. Chaves RSA para JWT
+> Se `RSA_PRIVATE_KEY` / `RSA_PUBLIC_KEY` estiverem vazios, a API lê os arquivos `private.key` e `public.key` da pasta raiz automaticamente.
 
-Os arquivos `public.key` e `private.key` devem estar na raiz do projeto. Para gerar um novo par:
+### 2. Chaves RSA
 
 ```bash
 openssl genrsa -out private.key 2048
 openssl rsa -in private.key -pubout -out public.key
+```
+
+### 3. Banco de dados
+
+```bash
+dotnet ef database update
 ```
 
 ---
@@ -177,18 +151,18 @@ openssl rsa -in private.key -pubout -out public.key
 ## Executando a Aplicação
 
 ```bash
-# Na pasta alimenta-bem-api/
+cd alimenta-bem-api
 dotnet restore
 dotnet run
 ```
 
-A API estará disponível em `http://localhost:5178` (HTTP) por padrão — a porta pode ser configurada em `Properties/launchSettings.json`.
+A API sobe em `http://localhost:5178` por padrão (configurável em `Properties/launchSettings.json`).
 
 ---
 
 ## Documentação da API (Swagger)
 
-Com a aplicação em execução no ambiente de desenvolvimento, acesse:
+Disponível nos ambientes de desenvolvimento e staging:
 
 ```
 http://localhost:5178/swagger
@@ -202,105 +176,131 @@ http://localhost:5178/swagger
 
 | Método | Rota | Descrição | Acesso |
 |---|---|---|---|
-| `POST` | `/user` | Cria novo usuário | Público |
-| `POST` | `/user/authenticate` | Autentica e retorna JWT | Público |
-| `GET` | `/user/{userId}` | Busca usuário por ID | Público |
-| `GET` | `/users` | Lista usuários com role atual | Admin, Developer |
-| `PUT` | `/user/role` | Atualiza role de usuário existente | Admin, Developer |
+| `POST` | `/user` | Cadastra novo usuário | Público |
+| `POST` | `/user/authenticate` | Autentica e retorna JWT | Público (rate limit: 5/min) |
+| `POST` | `/user/admin` | Cria usuário com role e vínculos | Admin, Developer |
+| `GET` | `/user/{userId}` | Busca usuário por ID | Autenticado |
+| `GET` | `/users` | Lista todos os usuários | Admin, Developer |
+| `PUT` | `/user/role` | Atualiza role de usuário | Admin, Developer |
+| `DELETE` | `/user/{userId}` | Exclui usuário (soft delete, libera e-mail) | Admin, Developer |
 
 ### NaturalPerson
-Perfil da pessoa física vinculada a um usuário.
 
 | Método | Rota | Descrição | Acesso |
 |---|---|---|---|
-| `GET` | `/natural-persons` | Lista simplificada de pessoas físicas | Público |
-| `GET` | `/natural-person/{userId}` | Busca perfil por ID de usuário | Autenticado |
-| `PUT` | `/natural-person` | Cria/atualiza perfil de pessoa física | Autenticado |
-| `POST` | `/natural-person/admin` | Cria ou atualiza doador (com credenciais de usuário) | Admin |
+| `GET` | `/natural-persons` | Lista simplificada (id, nome) | Público |
+| `GET` | `/natural-person/{userId}` | Busca perfil — cidadão só acessa o próprio | Autenticado |
+| `PUT` | `/natural-person` | Cria ou atualiza perfil (upsert) — userId forçado do JWT para Citizen | Autenticado |
 | `GET` | `/natural-persons/admin` | Lista completa de doadores com total de doações | Admin |
-| `PUT` | `/natural-person/admin` | Atualiza dados de doador por admin | Admin |
-| `DELETE` | `/natural-person/admin/{userId}` | Exclui doador por userId (soft delete) | Admin |
+| `POST` | `/natural-person/admin` | Cria ou atualiza doador com credenciais | Admin |
+| `PUT` | `/natural-person/admin` | Atualiza dados de doador | Admin |
+| `DELETE` | `/natural-person/admin/{userId}` | Exclui doador (soft delete) | Admin |
 
 ### Organization
-Organizações que recebem doações.
 
 | Método | Rota | Descrição | Acesso |
 |---|---|---|---|
 | `POST` | `/organization` | Cadastra organização | Admin |
-| `GET` | `/organizations` | Lista organizações | Autenticado |
+| `GET` | `/organizations` | Lista organizações ativas | Autenticado |
 | `PUT` | `/organization` | Atualiza organização | Admin |
-| `DELETE` | `/organization/{id}` | Exclui organização (soft delete) | Admin |
+| `DELETE` | `/organization/{id}` | Exclui organização + vínculos de usuários (soft delete) | Admin, Developer |
 
 ### OrganizationRequirement
-Necessidades declaradas pelas organizações (itens que precisam receber).
 
 | Método | Rota | Descrição | Acesso |
 |---|---|---|---|
 | `POST` | `/organization-requirement` | Cria necessidade | Admin |
 | `GET` | `/organization-requirements/{organizationId}` | Lista necessidades de uma organização | Público |
-| `PUT` | `/organization-requirement` | Atualiza necessidade existente | Admin |
-| `DELETE` | `/organization-requirement/{id}` | Remove necessidade (soft delete) | Admin |
+| `PUT` | `/organization-requirement` | Atualiza necessidade | Admin |
+| `DELETE` | `/organization-requirement/{id}` | Remove necessidade | Admin |
 
 ### Donation
-Doações de alimentos feitas por cidadãos.
 
 | Método | Rota | Descrição | Acesso |
 |---|---|---|---|
 | `POST` | `/donation` | Registra doação | Citizen |
-| `GET` | `/donations/natural-person/{naturalPersonId}` | Histórico de doações do doador com status atual | Citizen |
-| `GET` | `/donations/organization/{organizationId}` | Fila de doações por instituição | Admin |
-| `PUT` | `/donation/status` | Atualiza status da doação pela instituição | Admin |
+| `GET` | `/donations/natural-person/{naturalPersonId}` | Histórico do doador | Citizen |
+| `GET` | `/donations/organization/{organizationId}` | Fila por instituição | Admin |
+| `PUT` | `/donation/status` | Atualiza status | Admin |
 
-### Role
-Papéis de acesso do sistema. Gerenciado internamente — valores possíveis: `Admin`, `Developer`, `Citizen`.
+### UserOrganization
+
+| Método | Rota | Descrição | Acesso |
+|---|---|---|---|
+| `POST` | `/user-organization` | Vincula usuário a uma organização | Admin, Developer |
+| `DELETE` | `/user-organization` | Desvincula usuário de uma organização | Admin, Developer |
+
+### PasswordReset
+
+| Método | Rota | Descrição | Acesso |
+|---|---|---|---|
+| `POST` | `/user/forgot-password` | Envia e-mail com link de reset | Público (rate limit: 3/hora) |
+| `POST` | `/user/reset-password` | Redefine senha com token válido | Público (rate limit: 5/hora) |
 
 ---
 
 ## Autenticação
 
-A API usa **JWT com RSA-256** (assinatura assimétrica):
+A API usa **JWT RS256** (assinatura assimétrica com par de chaves RSA):
 
-1. Faça `POST /user/authenticate` com o body:
-   ```json
-   {
-     "email": "usuario@email.com",
-     "password": "senha"
-   }
-   ```
-2. Receba o token no campo `accessToken` da resposta.
-3. Inclua o token em todas as requisições protegidas:
+1. `POST /user/authenticate` com `{ "email": "...", "password": "..." }`
+2. Use o `accessToken` retornado no header de todas as requisições protegidas:
    ```
    Authorization: Bearer <accessToken>
    ```
 
 **Roles disponíveis:**
-- `Admin` — acesso total ao sistema (gerencia usuários, doadores, organizações, doações)
-- `Developer` — perfil técnico com acesso ao painel de cargos (`GET /users`, `PUT /user/role`)
-- `Citizen` — acesso às rotas de doação e perfil próprio
+
+| Role | Permissões |
+|---|---|
+| `Citizen` | Perfil próprio, doações próprias |
+| `Admin` | Usuários e doadores das suas organizações, fila de doações, necessidades |
+| `Developer` | Todos os usuários, todas as organizações, vínculos |
+
+---
+
+## Segurança
+
+- **JWT RS256** — par de chaves RSA 2048 bits; chave privada nunca exposta ao cliente
+- **BCrypt fator 12** — senha mínima de 12 e máxima de 128 caracteres
+- **Reset de senha seguro** — token gerado com `RandomNumberGenerator`, apenas o hash SHA-256 é armazenado no banco
+- **Rate limiting nativo ASP.NET 8:**
+  - `/user/authenticate` — 5 tentativas por IP por minuto
+  - `/user/forgot-password` — 3 pedidos por IP por hora
+  - `/user/reset-password` — 5 usos por IP por hora
+- **IDOR protegido** — Citizen só acessa e edita o próprio perfil (userId forçado do JWT)
+- **Soft delete com índice parcial** — e-mail único apenas entre registros ativos (`WHERE deletedAt IS NULL`)
+- **Headers de segurança HTTP** — X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy, X-XSS-Protection
+- **CORS restrito** — origens, métodos e headers explicitamente configurados
 
 ---
 
 ## Migrações do Banco de Dados
 
 ```bash
-# Aplicar todas as migrações pendentes
+# Aplicar migrações pendentes
 dotnet ef database update
 
 # Criar nova migração após alterar entidades
 dotnet ef migrations add NomeDaMigracao
 
-# Reverter para uma migração específica
+# Reverter para migração específica
 dotnet ef database update NomeDaMigracaoAnterior
 ```
+
+---
+
+## Internacionalização
+
+Respostas de erro são localizadas via header `Accept-Language` (`pt-BR` e `en-US`). Os arquivos de tradução ficam em `Languages/` no formato `{modulo}.resource.json`.
 
 ---
 
 ## Convenções de Código
 
 - **Namespace raiz:** `AlimentaBem`
-- **Padrão de namespace:** `AlimentaBem.Src.Modules.{Modulo}.{Camada}`
-- **Nomenclatura:** PascalCase para classes, métodos e propriedades; inglês em todo o código
+- **Padrão:** `AlimentaBem.Src.Modules.{Modulo}.{Camada}`
+- **Nomenclatura:** PascalCase para classes e métodos; inglês em todo o código
 - **Casos de uso:** cada funcionalidade tem seu próprio diretório com `Endpoint`, `Request`, `Response` e `Validator`
-- **Soft Delete:** implementado via `ISoftDelete` — registros nunca são apagados fisicamente do banco
-- **I18N:** respostas de erro localizadas via header `Accept-Language` (`pt-BR` e `en-US`)
-- **CORS:** em desenvolvimento, permite requisições de `http://localhost:3001`
+- **Soft Delete:** via `ISoftDelete` — registros nunca são apagados fisicamente
+- **Timestamps:** `DateTimeOffset` em todas as entidades para compatibilidade com PostgreSQL
