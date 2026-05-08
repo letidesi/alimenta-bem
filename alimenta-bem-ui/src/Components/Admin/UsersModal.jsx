@@ -176,8 +176,10 @@ export default function UsersModal({ open, onClose, organizations = [] }) {
         confirmLoading={addSaving}
         okText="Criar e vincular"
         cancelText="Cancelar"
+        width={520}
+        styles={{ body: { padding: "24px 32px 8px" } }}
       >
-        <Form form={addForm} layout="vertical">
+        <Form form={addForm} layout="vertical" requiredMark={false}>
           <Form.Item label="Nome" name="name" rules={[{ required: true, message: "Informe o nome." }]}>
             <Input />
           </Form.Item>
@@ -196,7 +198,7 @@ export default function UsersModal({ open, onClose, organizations = [] }) {
           <Form.Item
             label="Senha"
             name="password"
-            rules={[{ required: true, message: "Informe a senha." }, { min: 6, message: "Mínimo 6 caracteres." }]}
+            rules={[{ required: true, message: "Informe a senha." }, { min: 12, message: "Mínimo 12 caracteres." }]}
           >
             <Input.Password />
           </Form.Item>

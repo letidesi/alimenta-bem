@@ -96,7 +96,7 @@ export default function AdminHome() {
     try {
       const [organizationResponse, donorResponse] = await Promise.all([
         axios.get(`${import.meta.env.VITE_API_BASE_URL}/organizations`, { headers: getAuthHeaders() }),
-        axios.get(`${import.meta.env.VITE_API_BASE_URL}/natural-persons`, { headers: getAuthHeaders() }),
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/natural-persons/admin`, { headers: getAuthHeaders() }),
       ]);
 
       const organizationList = organizationResponse.data?.organizations || [];
@@ -133,6 +133,22 @@ export default function AdminHome() {
     if (!organizations.length) return;
 
     const timer = setInterval(() => {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        clearInterval(timer);
+        return;
+      }
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+        const isExpired = payload?.exp && payload.exp <= Math.floor(Date.now() / 1000);
+        if (isExpired) {
+          clearInterval(timer);
+          return;
+        }
+      } catch {
+        clearInterval(timer);
+        return;
+      }
       loadPendingDonationsCount(organizations, true);
     }, 20000);
 
