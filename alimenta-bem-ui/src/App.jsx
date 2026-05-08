@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate} from "react-router-dom";
+import { parseToken, isTokenExpired } from "./Utils/auth";
 
 import PublicLayout from "./Layouts/PublicLayout";
 import LoggedUserLayout from "./Layouts/LoggedUserLayout";
@@ -18,23 +19,6 @@ import UserHome from "./Components/UserHome";
 import AdminHome from "./Components/AdminHome";
 import DeveloperHome from "./Components/DeveloperHome";
 import Profile from "./Components/Profile";
-
-function parseJwt(token) {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(
-      window
-        .atob(base64)
-        .split('')
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    );
-    return JSON.parse(jsonPayload);
-  } catch (e) {
-    return null;
-  }
-}
 
 function normalizeRoles(decodedToken) {
   const rawRoles = decodedToken?.role || decodedToken?.roles || [];
@@ -57,18 +41,12 @@ function getDefaultRouteByRoles(roles) {
   return "/login";
 }
 
-function isTokenExpired(decodedToken) {
-  if (!decodedToken?.exp) return false;
-  const nowInSeconds = Math.floor(Date.now() / 1000);
-  return decodedToken.exp <= nowInSeconds;
-}
-
 function RequireAccess({ allowRoles = [], denyRoles = [], children }) {
   const token = localStorage.getItem("accessToken");
 
   if (!token) return <Navigate to="/login" replace />;
 
-  const decoded = parseJwt(token);
+  const decoded = parseToken(token);
   if (!decoded || isTokenExpired(decoded)) {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");

@@ -4,6 +4,7 @@ import axios from "axios";
 import { message } from "antd";
 import "../Css/Style.css";
 import { validateEmailField } from "../Utils/validation";
+import { parseToken } from "../Utils/auth";
 import PasswordInput from "./PasswordInput";
 
 function getHighestPriorityRole(roles) {
@@ -34,11 +35,7 @@ const Login = () => {
       localStorage.setItem("accessToken", accesstoken);
       localStorage.setItem("refreshToken", refreshtoken);
 
-      function parseJwt(token) {
-        try { return JSON.parse(atob(token.split(".")[1])); } catch { return null; }
-      }
-
-      const decoded = parseJwt(accesstoken);
+      const decoded = parseToken(accesstoken);
       const roles = decoded?.role || decoded?.roles;
       const normalizedRoles = Array.isArray(roles) ? roles.map(String) : roles ? [String(roles)] : [];
       const role = getHighestPriorityRole(normalizedRoles);

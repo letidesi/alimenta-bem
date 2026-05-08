@@ -3,7 +3,7 @@ import { Button, Drawer, Layout, Menu, Typography, Grid, Space } from "antd";
 import { MenuOutlined, LogoutOutlined, HeartFilled } from "@ant-design/icons";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { getAuthHeaders } from "../Utils/auth";
+import { getAuthHeaders, parseToken } from "../Utils/auth";
 import "../Css/Style.css";
 
 const { Sider, Header, Content } = Layout;
@@ -25,15 +25,7 @@ export default function DashboardLayout({ menuItems, roleLabel }) {
       return;
     }
 
-    const parseJwt = (jwt) => {
-      try {
-        return JSON.parse(atob(jwt.split(".")[1]));
-      } catch {
-        return null;
-      }
-    };
-
-    const decodedToken = parseJwt(token);
+    const decodedToken = parseToken(token);
     const userId = decodedToken?.sub || decodedToken?.userId || decodedToken?.id;
 
     if (!userId) {

@@ -1,17 +1,10 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
+import { parseToken } from "../Utils/auth";
 
 function getHighestPriorityRole(roles) {
   const rolePriority = ["admin", "developer", "citizen"];
   return rolePriority.find((role) => roles.includes(role)) || null;
-}
-
-function parseJwt(token) {
-  try {
-    return JSON.parse(atob(token.split(".")[1]));
-  } catch (e) {
-    return null;
-  }
 }
 
 export default function ProtectedLayoutRouter() {
@@ -19,7 +12,7 @@ export default function ProtectedLayoutRouter() {
 
   if (!token) return <Navigate to="/login" />;
 
-  const decoded = parseJwt(token);
+  const decoded = parseToken(token);
   const rawRoles = decoded?.role || decoded?.roles;
   const normalizedRoles = Array.isArray(rawRoles)
     ? rawRoles.map((role) => String(role).toLowerCase())
