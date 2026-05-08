@@ -30,6 +30,7 @@ alimenta-bem-api/appsettings.json
 alimenta-bem-api/appsettings.Development.json
 alimenta-bem-api/Properties/launchSettings.json
 !alimenta-bem-api/appsettings.example.json
+!alimenta-bem-api/.env.example
 
 # vscode/idea
 .vscode/
