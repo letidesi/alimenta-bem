@@ -63,7 +63,7 @@ const CreateNaturalPerson = () => {
             </div>
             <div className="form-group">
                 <label>Senha do usuário</label>
-                <PasswordInput name="password" value={personData.password} onChange={handleChange} minLength={6} maxLength={25} required />
+                <PasswordInput name="password" value={personData.password} onChange={handleChange} minLength={12} maxLength={128} required />
             </div>
             <div className="form-group">
                 <label>Nome</label>

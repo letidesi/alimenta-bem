@@ -23,8 +23,8 @@ const ResetPassword = () => {
       return;
     }
 
-    if (newPassword.length < 6) {
-      message.error("A senha deve ter no mínimo 6 caracteres.");
+    if (newPassword.length < 12) {
+      message.error("A senha deve ter no mínimo 12 caracteres.");
       return;
     }
 
