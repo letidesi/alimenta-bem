@@ -1,7 +1,8 @@
-﻿namespace AlimentaBem.Src.Modules.User.UseCases.Authenticate.DTO;
+namespace AlimentaBem.Src.Modules.User.UseCases.Authenticate.DTO;
 
 public class UserAuthenticateResponse
 {
-    public string accesstoken { get; set; }
-    public string refreshtoken { get; set; }
+    public Guid userId { get; set; }
+    public string? role { get; set; }
+    public long expiresAt { get; set; }
 }

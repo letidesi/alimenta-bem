@@ -101,6 +101,16 @@ public partial class Program
 
                     RoleClaimType = ClaimTypes.Role
                 };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = ctx =>
+                    {
+                        if (ctx.Request.Cookies.TryGetValue("accessToken", out var cookieToken))
+                            ctx.Token = cookieToken;
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
         builder.Services.AddAuthorization(options =>

@@ -3,6 +3,7 @@ using AlimentaBem.Context;
 using AlimentaBem.Src.Providers.Crypto;
 using AlimentaBem.Src.Modules.User.Repository;
 using AlimentaBem.Src.Modules.User.UseCases.Authenticate.DTO;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AlimentaBem.Src.Modules.User.UseCases.Authenticate
 {
@@ -37,7 +38,33 @@ namespace AlimentaBem.Src.Modules.User.UseCases.Authenticate
 
                 var tokens = useCase.exec(req, user);
 
-                await SendAsync(tokens);
+                var isProd = !HttpContext.RequestServices
+                    .GetRequiredService<IWebHostEnvironment>().IsDevelopment();
+
+                HttpContext.Response.Cookies.Append("accessToken", tokens.accesstoken, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = isProd,
+                    SameSite = isProd ? SameSiteMode.None : SameSiteMode.Lax,
+                    Path = "/",
+                    Expires = DateTimeOffset.UtcNow.AddHours(1),
+                });
+
+                HttpContext.Response.Cookies.Append("refreshToken", tokens.refreshtoken, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = isProd,
+                    SameSite = isProd ? SameSiteMode.None : SameSiteMode.Lax,
+                    Path = "/",
+                    Expires = DateTimeOffset.UtcNow.AddDays(30),
+                });
+
+                await SendAsync(new UserAuthenticateResponse
+                {
+                    userId = user.id,
+                    role = user.roles.Select(r => r.type).FirstOrDefault(),
+                    expiresAt = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds(),
+                });
             }
             catch (Exception e)
             {

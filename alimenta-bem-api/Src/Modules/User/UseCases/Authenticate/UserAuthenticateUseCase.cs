@@ -18,19 +18,17 @@ namespace AlimentaBem.Src.Modules.User.UseCases.Authenticate
             _criptoProvider = cryptoProvider;
         }
 
-        public UserAuthenticateResponse exec(UserAuthenticateRequest request, User user)
+        public UserTokenPair exec(UserAuthenticateRequest request, User user)
         {
             var passwordIsValid = FormatPassword.ComparePassword(request.password, user.passwordHash);
             if (!passwordIsValid)
                 throw new Exception(_localizer["user:LoginInvalid"]);
 
-            var tokens = new UserAuthenticateResponse()
+            return new UserTokenPair
             {
                 accesstoken = _criptoProvider.generateAccessToken(user),
                 refreshtoken = _criptoProvider.generateRefreshToken(user)
             };
-
-            return tokens;
         }
     }
 }
