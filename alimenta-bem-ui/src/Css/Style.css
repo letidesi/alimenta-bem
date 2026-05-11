@@ -64,7 +64,10 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* Fallback sólido para browsers sem suporte a backdrop-filter */
+  background: #ffffffd3;
   background: rgba(255, 255, 255, 0.76);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(31, 95, 130, 0.15);
 }
@@ -448,7 +451,10 @@ form h2,
   display: flex;
   align-items: center;
   border-bottom: 1px solid rgba(31, 95, 130, 0.15);
+  /* Fallback sólido para browsers sem suporte a backdrop-filter */
+  background: #ffffffc0 !important;
   background: rgba(255, 255, 255, 0.72) !important;
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
 }
 
@@ -920,5 +926,15 @@ form h2,
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Garante fundo sólido em devices que não suportam backdrop-filter */
+@supports not (backdrop-filter: blur(1px)) {
+  .public-header {
+    background: rgba(255, 255, 255, 0.97);
+  }
+  .app-header {
+    background: rgba(255, 255, 255, 0.97) !important;
   }
 }
