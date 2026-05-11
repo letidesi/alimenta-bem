@@ -1,5 +1,5 @@
 using AlimentaBem.Helpers;
-using AlimentaBem.Src.Modules.User.UseCases.AdminCreate.DTO;
+using static AlimentaBem.Helpers.InputSanitizer;
 
 namespace AlimentaBem.Src.Modules.User.UseCases.AdminCreate.DTO;
 
@@ -9,7 +9,11 @@ public class UserAdminCreateValidator : Validator<UserAdminCreateRequest>
     {
         RuleFor(r => r.name)
             .NotEmpty()
-            .WithMessage(localizer["data:NameRequired"]);
+            .WithMessage(localizer["data:NameRequired"])
+            .MaximumLength(200)
+            .WithMessage(localizer["data:NameRequired"])
+            .Must(v => v == null || !ContainsHtml(v))
+            .WithMessage("O campo nome não pode conter HTML ou scripts.");
 
         RuleFor(r => r.email)
             .NotEmpty()
@@ -20,7 +24,7 @@ public class UserAdminCreateValidator : Validator<UserAdminCreateRequest>
         RuleFor(r => r.password)
             .NotEmpty()
             .WithMessage(localizer["user:PasswordRequired"])
-            .MinimumLength(12)
+            .MinimumLength(8)
             .WithMessage(localizer["user:PasswordShort"])
             .MaximumLength(128)
             .WithMessage(localizer["user:PasswordLong"]);

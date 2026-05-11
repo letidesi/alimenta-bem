@@ -14,7 +14,7 @@ public class ResetPasswordValidator : Validator<ResetPasswordRequest>
         RuleFor(r => r.newPassword)
             .NotEmpty()
             .WithMessage(localizer["user:PasswordRequired"])
-            .MinimumLength(12)
+            .MinimumLength(8)
             .WithMessage(localizer["user:PasswordShort"])
             .MaximumLength(128)
             .WithMessage(localizer["user:PasswordLong"]);

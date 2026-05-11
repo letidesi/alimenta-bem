@@ -1,5 +1,5 @@
-﻿using AlimentaBem.Helpers;
-using AlimentaBem.Src.Modules.User.UseCases.Create.DTO;
+using AlimentaBem.Helpers;
+using static AlimentaBem.Helpers.InputSanitizer;
 
 namespace AlimentaBem.Src.Modules.User.UseCases.Create.DTO;
 
@@ -7,24 +7,26 @@ public class Validator : Validator<UserCreateRequest>
 {
     public Validator(Localizer localizer)
     {
-        var _localizer = localizer;
-
         RuleFor(request => request.name)
            .NotEmpty()
-           .WithMessage(_localizer["data:NameRequired"]);
+           .WithMessage(localizer["data:NameRequired"])
+           .MaximumLength(200)
+           .WithMessage(localizer["data:NameRequired"])
+           .Must(v => v == null || !ContainsHtml(v))
+           .WithMessage("O campo nome não pode conter HTML ou scripts.");
 
         RuleFor(request => request.email)
             .NotEmpty()
-            .WithMessage(_localizer["data:EmailRequired"])
+            .WithMessage(localizer["data:EmailRequired"])
             .EmailAddress()
-            .WithMessage(_localizer["data:FormatOfEmailAddress"]);
+            .WithMessage(localizer["data:FormatOfEmailAddress"]);
 
         RuleFor(request => request.password)
             .NotEmpty()
-            .WithMessage(_localizer["user:PasswordRequired"])
-            .MinimumLength(12)
-            .WithMessage(_localizer["user:PasswordShort"])
+            .WithMessage(localizer["user:PasswordRequired"])
+            .MinimumLength(8)
+            .WithMessage(localizer["user:PasswordShort"])
             .MaximumLength(128)
-            .WithMessage(_localizer["user:PasswordLong"]);
+            .WithMessage(localizer["user:PasswordLong"]);
     }
 }
