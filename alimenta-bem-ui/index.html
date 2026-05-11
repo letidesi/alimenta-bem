@@ -19,7 +19,39 @@
     <title>AlimentaBem</title>
   </head>
   <body>
-    <noscript>Habilite o JavaScript no seu navegador para usar o AlimentaBem.</noscript>
+    <noscript>
+      <style>
+        .noscript-box {
+          font-family: Arial, sans-serif;
+          max-width: 360px;
+          margin: 40px auto;
+          padding: 24px 20px;
+          border: 1px solid #c8dce8;
+          border-radius: 12px;
+          background: #f5fbff;
+          text-align: center;
+          color: #142029;
+        }
+        .noscript-box h2 { margin: 0 0 12px; font-size: 1.2rem; color: #0f3553; }
+        .noscript-box p  { margin: 0 0 10px; font-size: 0.95rem; line-height: 1.5; }
+        .noscript-box ol { text-align: left; padding-left: 20px; margin: 12px 0 0; }
+        .noscript-box li { margin-bottom: 6px; font-size: 0.9rem; line-height: 1.5; }
+        .noscript-box .tip { font-size: 0.82rem; color: #385061; margin-top: 14px; }
+      </style>
+      <div class="noscript-box">
+        <h2>AlimentaBem</h2>
+        <p>Para usar este site, o <strong>JavaScript</strong> precisa estar ativado no seu celular.</p>
+        <p>Como ativar no <strong>Chrome (Android)</strong>:</p>
+        <ol>
+          <li>Toque nos <strong>três pontinhos</strong> no canto superior direito</li>
+          <li>Vá em <strong>Configurações</strong></li>
+          <li>Toque em <strong>Configurações do site</strong></li>
+          <li>Toque em <strong>JavaScript</strong> e ative</li>
+          <li>Volte e recarregue esta página</li>
+        </ol>
+        <p class="tip">Se o problema continuar, tente abrir pelo navegador <strong>Chrome</strong> ou <strong>Firefox</strong>.</p>
+      </div>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/index.jsx"></script>
   </body>
