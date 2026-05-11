@@ -6,6 +6,22 @@ import { getUserIdFromSession } from "../Utils/auth";
 import { validateEmailField } from "../Utils/validation";
 import { extractApiError } from "../Utils/apiError";
 
+// Detecta suporte nativo a input[type="date"]
+function supportsDateInput() {
+  try {
+    var input = document.createElement("input");
+    input.setAttribute("type", "date");
+    input.setAttribute("value", "not-a-date");
+    return input.value !== "not-a-date";
+  } catch (e) {
+    return false;
+  }
+}
+
+const DATE_INPUT_SUPPORTED = supportsDateInput();
+
+const axiosConfig = { withCredentials: true };
+
 const UpdateNaturalPerson = () => {
   const [personData, setPersonData] = useState({
     email: "",
@@ -21,92 +37,116 @@ const UpdateNaturalPerson = () => {
 
   const [userId, setUserId] = useState(null);
   const [emailError, setEmailError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [dateError, setDateError] = useState("");
 
   const validateEmail = (value) => validateEmailField(value, setEmailError);
 
   useEffect(() => {
-    const userId = getUserIdFromSession();
-    if (!userId) return;
-    setUserId(userId);
+    var id = getUserIdFromSession();
+    if (!id) return;
+    setUserId(id);
 
-    const fetchUserData = async () => {
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/user/${userId}`
-        );
-
-        const user = response.data.user;
-        const email = response.data.email;
-        const name = response.data.name;
-
-        setPersonData((prev) => ({
-          ...prev,
-          ...user,
-          email: email ?? prev.email,
-          name: name ?? prev.name,
-          userId: userId,
-        }));
-      } catch {
+    axios
+      .get(import.meta.env.VITE_API_BASE_URL + "/user/" + id, axiosConfig)
+      .then(function(response) {
+        var d = response.data || {};
+        // Extrair apenas os campos conhecidos — nunca espalhar response.data inteiro
+        setPersonData(function(prev) {
+          return Object.assign({}, prev, {
+            email: d.email != null ? d.email : prev.email,
+            name: d.name != null ? d.name : prev.name,
+            userId: id,
+          });
+        });
+      })
+      .catch(function() {
         // silently ignore — user sees stale/empty state
-      }
-    };
-
-    fetchUserData();
+      });
   }, []);
 
   useEffect(() => {
     if (!userId) return;
 
-    const fetchNaturalPerson = async () => {
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/natural-person/${userId}`
-        );
-        setPersonData((prev) => ({
-          ...prev,
-          ...response.data,
-        }));
-      } catch {
+    axios
+      .get(import.meta.env.VITE_API_BASE_URL + "/natural-person/" + userId, axiosConfig)
+      .then(function(response) {
+        var d = response.data || {};
+        // Mapear apenas os campos editáveis — evitar mass assignment de campos da API
+        setPersonData(function(prev) {
+          return {
+            email: prev.email,
+            name: d.name != null ? d.name : prev.name,
+            socialName: d.socialName != null ? d.socialName : prev.socialName,
+            age: d.age != null ? d.age : prev.age,
+            birthdayDate: d.birthdayDate != null ? d.birthdayDate : prev.birthdayDate,
+            gender: d.gender != null ? d.gender : prev.gender,
+            skinColor: d.skinColor != null ? d.skinColor : prev.skinColor,
+            isPcd: d.isPcd != null ? d.isPcd : prev.isPcd,
+            userId: prev.userId,
+          };
+        });
+      })
+      .catch(function() {
         // silently ignore — form stays with default empty state
-      }
-    };
-
-    fetchNaturalPerson();
+      });
   }, [userId]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setPersonData({
-      ...personData,
-      [name]: value,
+    var name = e.target.name;
+    var value = e.target.value;
+    if (name === "birthdayDate") setDateError("");
+    setPersonData(function(prev) {
+      return Object.assign({}, prev, { [name]: value });
     });
   };
 
   const handlePcdToggle = (checked) => {
-    setPersonData({
-      ...personData,
-      isPcd: checked,
+    setPersonData(function(prev) {
+      return Object.assign({}, prev, { isPcd: checked });
     });
+  };
+
+  // Valida data no formato AAAA-MM-DD (para fallback de texto)
+  const validateDate = (value) => {
+    if (!value) return true;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      setDateError("Use o formato AAAA-MM-DD (ex: 1990-05-20)");
+      return false;
+    }
+    setDateError("");
+    return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateEmail(personData.email)) return;
+    if (!validateDate(personData.birthdayDate)) return;
 
+    setSubmitting(true);
     try {
-      const payload = {
-        ...personData,
+      // Payload explícito — nunca espalhar personData inteiro para evitar envio de campos extras
+      var payload = {
         userId: userId,
-        age: personData.age || null,
-        birthdayDate: personData.birthdayDate || null,
+        email: personData.email,
+        name: personData.name,
+        socialName: personData.socialName,
+        age: personData.age ? personData.age : null,
+        birthdayDate: personData.birthdayDate ? personData.birthdayDate : null,
+        gender: personData.gender,
+        skinColor: personData.skinColor,
+        isPcd: personData.isPcd,
       };
       await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/natural-person`,
-        payload
+        import.meta.env.VITE_API_BASE_URL + "/natural-person",
+        payload,
+        axiosConfig
       );
       message.success("Perfil completado com sucesso!");
     } catch (error) {
       message.error(extractApiError(error, "Ocorreu um erro ao completar o perfil."));
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -121,7 +161,7 @@ const UpdateNaturalPerson = () => {
             name="email"
             value={personData.email}
             onChange={(e) =>
-              setPersonData({ ...personData, email: e.target.value })
+              setPersonData(function(prev) { return Object.assign({}, prev, { email: e.target.value }); })
             }
             onBlur={(e) => validateEmail(e.target.value)}
             required
@@ -134,8 +174,9 @@ const UpdateNaturalPerson = () => {
             type="text"
             name="name"
             value={personData.name}
-            onChange={(e) => setPersonData({ ...personData, name: e.target.value })}
+            onChange={(e) => setPersonData(function(prev) { return Object.assign({}, prev, { name: e.target.value }); })}
             required
+            maxLength={200}
           />
         </div>
         <div className="form-group">
@@ -145,8 +186,9 @@ const UpdateNaturalPerson = () => {
             name="socialName"
             value={personData.socialName}
             onChange={(e) =>
-              setPersonData({ ...personData, socialName: e.target.value })
+              setPersonData(function(prev) { return Object.assign({}, prev, { socialName: e.target.value }); })
             }
+            maxLength={100}
           />
         </div>
         <div className="form-group">
@@ -162,13 +204,28 @@ const UpdateNaturalPerson = () => {
         </div>
         <div className="form-group">
           <label>Data de nascimento</label>
-          <input
-            type="date"
-            name="birthdayDate"
-            value={personData.birthdayDate}
-            onChange={handleChange}
-            required
-          />
+          {DATE_INPUT_SUPPORTED ? (
+            <input
+              type="date"
+              name="birthdayDate"
+              value={personData.birthdayDate}
+              onChange={handleChange}
+              required
+            />
+          ) : (
+            <input
+              type="text"
+              name="birthdayDate"
+              value={personData.birthdayDate}
+              onChange={handleChange}
+              onBlur={(e) => validateDate(e.target.value)}
+              placeholder="AAAA-MM-DD"
+              pattern="\d{4}-\d{2}-\d{2}"
+              inputMode="numeric"
+              required
+            />
+          )}
+          {dateError && <span className="field-error">{dateError}</span>}
         </div>
         <div className="form-group">
           <label>Gênero</label>
@@ -207,7 +264,7 @@ const UpdateNaturalPerson = () => {
             <div>
               <label htmlFor="pcd-switch">Pessoa com deficiência (PCD)</label>
               <span
-                className={`pcd-status-text ${personData.isPcd ? "on" : "off"}`}
+                className={"pcd-status-text " + (personData.isPcd ? "on" : "off")}
               >
                 Status: {personData.isPcd ? "Ativado" : "Desativado"}
               </span>
@@ -222,11 +279,10 @@ const UpdateNaturalPerson = () => {
           </div>
         </div>
 
-        <button type="submit" className="submit-btn">
-          Enviar
+        <button type="submit" className="submit-btn" disabled={submitting}>
+          {submitting ? "Enviando..." : "Enviar"}
         </button>
       </form>
-
     </div>
   );
 };
