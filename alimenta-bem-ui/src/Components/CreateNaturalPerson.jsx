@@ -60,19 +60,19 @@ const CreateNaturalPerson = () => {
             </div>
             <div className="form-group">
                 <label>Senha do usuário</label>
-                <PasswordInput name="password" value={personData.password} onChange={handleChange} minLength={12} maxLength={128} required />
+                <PasswordInput name="password" value={personData.password} onChange={handleChange} minLength={8} maxLength={128} required />
             </div>
             <div className="form-group">
                 <label>Nome</label>
-                <input type="text" name="firstName" value={personData.firstName} onChange={handleChange} required />
+                <input type="text" name="firstName" value={personData.firstName} onChange={handleChange} required maxLength={100} />
             </div>
             <div className="form-group">
                 <label>Sobrenome</label>
-                <input type="text" name="lastName" value={personData.lastName} onChange={handleChange} required />
+                <input type="text" name="lastName" value={personData.lastName} onChange={handleChange} required maxLength={100} />
             </div>
             <div className="form-group">
                 <label>Nome social</label>
-                <input type="text" name="socialName" value={personData.socialName} onChange={handleChange} />
+                <input type="text" name="socialName" value={personData.socialName} onChange={handleChange} maxLength={100} />
             </div>
             <div className="form-group">
                 <label>Idade</label>

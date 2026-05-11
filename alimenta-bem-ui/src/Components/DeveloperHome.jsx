@@ -317,7 +317,7 @@ export default function DeveloperHome() {
           <Form.Item
             label="Senha"
             name="password"
-            rules={[{ required: true, message: "Informe a senha." }, { min: 12, message: "Mínimo 12 caracteres." }]}
+            rules={[{ required: true, message: "Informe a senha." }, { min: 8, message: "Mínimo 8 caracteres." }]}
           >
             <Input.Password />
           </Form.Item>

@@ -173,7 +173,7 @@ const CreateDonation = () => {
 
         <div className="form-group">
           <label>Nome do item</label>
-          <input type="text" name="itemName" value={donationData.itemName} onChange={handleChange} required />
+          <input type="text" name="itemName" value={donationData.itemName} onChange={handleChange} required maxLength={150} />
         </div>
         <div className="form-group">
           <label>Quantidade doada</label>

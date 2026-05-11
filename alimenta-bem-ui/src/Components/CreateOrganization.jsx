@@ -30,7 +30,7 @@ const CreateOrganization = () => {
       <h2>Registrar a instituição</h2>
       <div className="form-group">
         <label>Nome</label>
-        <input type="text" name="name" value={organizationData.name} onChange={handleChange} required />
+        <input type="text" name="name" value={organizationData.name} onChange={handleChange} required maxLength={150} />
       </div>
       <div className="form-group">
         <label>Tipo da instituição</label>
@@ -44,7 +44,7 @@ const CreateOrganization = () => {
       </div>
       <div className="form-group">
         <label>Descrição</label>
-        <textarea name="description" value={organizationData.description} onChange={handleChange} />
+        <textarea name="description" value={organizationData.description} onChange={handleChange} maxLength={500} />
       </div>
       <div className="form-group">
         <label>CNPJ (opcional)</label>

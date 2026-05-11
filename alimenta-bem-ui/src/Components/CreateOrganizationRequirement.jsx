@@ -51,7 +51,7 @@ const CreateOrganizationRequirement = () => {
       </div>
       <div className="form-group">
         <label>Nome do item que instituição mais precisa</label>
-        <input type="text" name="itemName" value={requirementData.itemName} onChange={handleChange} required />
+        <input type="text" name="itemName" value={requirementData.itemName} onChange={handleChange} required maxLength={150} />
       </div>
       <div className="form-group">
         <label>Quantidade</label>

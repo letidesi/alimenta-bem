@@ -40,7 +40,7 @@ const CreateUser = () => {
             <h2>Registrar usuário</h2>
             <div className="form-group">
                 <label>Nome</label>
-                <input type="text" name="name" value={userData.name} onChange={handleChange} />
+                <input type="text" name="name" value={userData.name} onChange={handleChange} maxLength={200} />
             </div>
             <div className="form-group">
                 <label>Email</label>

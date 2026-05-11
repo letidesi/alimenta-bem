@@ -125,11 +125,22 @@ export default function OrganizationsModal({ open, onClose, organizations, onRef
             <Select options={ORGANIZATION_TYPE_OPTIONS} />
           </Form.Item>
 
-          <Form.Item label="Descrição" name="description">
-            <Input.TextArea rows={3} />
+          <Form.Item
+            label="Descrição"
+            name="description"
+            rules={[{ max: 500, message: "Máximo de 500 caracteres." }]}
+          >
+            <Input.TextArea rows={3} maxLength={500} showCount />
           </Form.Item>
 
-          <Form.Item label="CNPJ (opcional)" name="cnpj">
+          <Form.Item
+            label="CNPJ (opcional)"
+            name="cnpj"
+            rules={[{
+              pattern: /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$|^\d{14}$/,
+              message: "Formato inválido. Use 00.000.000/0000-00 ou 14 dígitos.",
+            }]}
+          >
             <Input placeholder="00.000.000/0000-00" maxLength={18} />
           </Form.Item>
         </Form>
